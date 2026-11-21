@@ -395,7 +395,7 @@ $('#runSim').onclick=()=>{
   const done=A=>{ statsAgg=A; $('#runSim').disabled=false; $('#runSim').innerHTML=t('run'); renderStats(); };
   try{
     if(simWorker) simWorker.terminate();
-    simWorker=new Worker('sim-worker.js');
+    simWorker=new Worker('sim-worker.js?v=3');
     simWorker.onmessage=e=>{ $('#prog').style.width=(e.data.progress*100).toFixed(1)+'%'; if(e.data.agg){ statsAgg=e.data.agg; renderStats(); } if(e.data.done) done(e.data.agg); };
     simWorker.onerror=()=>{ simWorker=null; runMain(games,players,done); };
     simWorker.postMessage({games,players});

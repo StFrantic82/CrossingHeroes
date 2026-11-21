@@ -18,6 +18,7 @@ Document de reprise du projet pour une nouvelle discussion avec Claude. Il résu
 2. Tester : `node src/sim.js 200 3` (simulation sans navigateur), puis une partie dans le navigateur.
 3. Publier sur l'artefact Claude (`publish_files` avec le slug, la dernière version et les fichiers modifiés, en mode `patch`).
    - Si l'artefact est partagé en public, Claude ne peut pas le modifier : repasser le partage sur « Only you », publier, puis remettre le partage.
+   - Avant de publier, augmenter le numéro de version `?v=` des scripts dans `index.html` (et dans `app.js` / `sim-worker.js`), sinon les navigateurs gardent l'ancienne version en cache jusqu'à 10 minutes.
 4. Commit et push sur `main`. GitHub Pages se met à jour en environ une minute.
    - Pour pousser, l'application GitHub « Claude » doit être installée sur le compte StFrantic82, avec accès au dépôt.
 
