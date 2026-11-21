@@ -340,8 +340,8 @@ function summarize(G){
 function simulate(nPlayers){ const G=newGame({players:Array.from({length:nPlayers},(_,i)=>({name:'IA'+(i+1),ai:true}))}); playAI(G); return summarize(G); }
 function newAgg(){
   const A={games:0, byN:{}, seats:{}, heroes:{}, hist:{}, doneHist:{}, players:0, sum:{total:0,trials:0,heroPts:0,glory:0,itemsPts:0,gold:0,zeus:0,muses:0,done:0}, winSum:0, marginSum:0, trials:{}, items:{}, gods:{}};
-  TRIALS.forEach(t=>A.trials[t.id]={taken:0,done:0,vp:0,winTaken:0,winDone:0});
-  Object.keys(ITEMS).forEach(id=>A.items[id]={own:0,free:0,vp:0,win:0});
+  TRIALS.forEach(t=>A.trials[t.id]={taken:0,done:0,vp:0,winTaken:0,winDone:0,expDone:0});
+  Object.keys(ITEMS).forEach(id=>A.items[id]={own:0,free:0,vp:0,win:0,exp:0});
   GOD_KEYS.forEach(g=>A.gods[g]={done:0});
   HEROES.forEach(h=>A.heroes[h.k]={n:0,win:0,total:0});
   return A;
@@ -358,14 +358,18 @@ function addAgg(A,R){
     const h=A.heroes[p.hero]; h.n++; h.win+=p.win; h.total+=p.total;
     const b=Math.floor(p.total/10)*10; A.hist[b]=(A.hist[b]||0)+1;
     A.doneHist[p.done]=(A.doneHist[p.done]||0)+1;
-    p.cards.forEach(c=>{ const t=A.trials[c.t]; t.taken++; t.winTaken+=p.win; if(c.d){ t.done++; t.vp+=c.v; t.winDone+=p.win; } });
-    p.items.forEach(it=>{ const x=A.items[it.id]; x.own++; x.vp+=it.v; x.win+=p.win; if(it.free) x.free++; });
+    p.cards.forEach(c=>{ const t=A.trials[c.t]; t.taken++; t.winTaken+=p.win; if(c.d){ t.done++; t.vp+=c.v; t.winDone+=p.win; t.expDone+=1/n; } });
+    p.items.forEach(it=>{ const x=A.items[it.id]; x.own++; x.vp+=it.v; x.win+=p.win; x.exp+=1/n; if(it.free) x.free++; });
     GOD_KEYS.forEach((g,i)=>A.gods[g].done+=p.gods[i]);
   });
   return A;
 }
 
-const API={playAI,summarize,simulate,newAgg,addAgg,TRIALS,TR,SYM,GODS,GOD_KEYS,SKILLS,ITEMS,HEROES,EDGES,TURNS,GLORY_TABLE,
+function mergeAgg(A,B){
+  const m=(a,b)=>{ for(const k in b){ const v=b[k]; if(typeof v==='number') a[k]=(a[k]||0)+v; else if(v&&typeof v==='object'){ if(!a[k]||typeof a[k]!=='object') a[k]={}; m(a[k],v); } } return a; };
+  return m(A,B);
+}
+const API={mergeAgg,playAI,summarize,simulate,newAgg,addAgg,TRIALS,TR,SYM,GODS,GOD_KEYS,SKILLS,ITEMS,HEROES,EDGES,TURNS,GLORY_TABLE,
   newGame,P,freeCells,availableEdges,symCounts,missingFor,isComplete,godCount,zeusSets,gloryOf,heroSyms,trialValue,itemValue,score,
   muses,eligibleSkills,placeTrial,takeSkill,zeusPick,buy,pass,ranking,edgeCell,trialEdges,cellEdges,
   aiBestSkill,aiBestTrial,aiBestItem,aiMuses,evalPlayer};

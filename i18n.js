@@ -34,6 +34,7 @@ fr:{
   done:a=>`✦ ${a.p} réussit « ${a.t} » !`, zeus:a=>`⚡ ${a.p} reçoit la bénédiction de Zeus !`,
   item:a=>a.free?`${a.p} reçoit ${a.i} gratuitement.`:`${a.p} achète ${a.i}.`, end:()=>"La partie est terminée !"},
  // stats
+ colDelta:"Δ victoire", tipDelta:"Écart entre le taux de victoire des joueurs concernés et le taux attendu (1 / nombre de joueurs), en points", cumul:"Cumuler avec les simulations précédentes", reset:"Réinitialiser",
  simTitle:"Simulation de parties entre IA", simGames:"Parties", simPlayers:"Joueurs", mixed:"Mixte (2–5)", run:"Lancer la simulation", running:"Simulation…",
  simNote:"Les IA jouent avec la même logique que vos adversaires. Plus il y a de parties, plus les tendances sont fiables.",
  noSim:"Lancez une simulation pour voir les tendances du jeu : avantage du premier joueur, Héros les plus forts, Épreuves et Objets les plus rentables.",
@@ -80,6 +81,7 @@ en:{
   face:a=>`${a.p} faces “${a.t}”${a.g}.`, take:a=>`${a.p} takes ${a.s}.`, refill:a=>`Display refilled: ${a.p} gains ${a.coin}.`,
   done:a=>`✦ ${a.p} completes “${a.t}”!`, zeus:a=>`⚡ ${a.p} receives the blessing of Zeus!`,
   item:a=>a.free?`${a.p} receives ${a.i} for free.`:`${a.p} buys ${a.i}.`, end:()=>"The game is over!"},
+ colDelta:"Δ win", tipDelta:"Difference between the win rate of these players and the expected rate (1 / number of players), in points", cumul:"Add to previous simulations", reset:"Reset",
  simTitle:"AI game simulation", simGames:"Games", simPlayers:"Players", mixed:"Mixed (2–5)", run:"Run simulation", running:"Simulating…",
  simNote:"The AIs play with the same logic as your opponents. More games give more reliable trends.",
  noSim:"Run a simulation to see the game's trends: first-player advantage, strongest Heroes, most rewarding Trials and Items.",
@@ -126,6 +128,7 @@ it:{
   face:a=>`${a.p} affronta «${a.t}»${a.g}.`, take:a=>`${a.p} prende ${a.s}.`, refill:a=>`Espositore riempito: ${a.p} guadagna ${a.coin}.`,
   done:a=>`✦ ${a.p} supera «${a.t}»!`, zeus:a=>`⚡ ${a.p} riceve la benedizione di Zeus!`,
   item:a=>a.free?`${a.p} riceve ${a.i} gratis.`:`${a.p} compra ${a.i}.`, end:()=>"La partita è finita!"},
+ colDelta:"Δ vittoria", tipDelta:"Differenza tra la percentuale di vittoria di questi giocatori e quella attesa (1 / numero di giocatori), in punti", cumul:"Somma alle simulazioni precedenti", reset:"Azzera",
  simTitle:"Simulazione di partite tra IA", simGames:"Partite", simPlayers:"Giocatori", mixed:"Misto (2–5)", run:"Avvia la simulazione", running:"Simulazione…",
  simNote:"Le IA giocano con la stessa logica dei tuoi avversari. Più partite, tendenze più affidabili.",
  noSim:"Avvia una simulazione per vedere le tendenze del gioco: vantaggio del primo giocatore, Eroi più forti, Prove e Oggetti più redditizi.",

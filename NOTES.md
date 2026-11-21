@@ -91,7 +91,12 @@ Pas d'étape de construction : les fichiers de la racine sont servis tels quels.
 
 ---
 
-## 7. Pistes
+## 7. Statistiques
+
+- « Δ victoire » (Épreuves et Objets) : taux de victoire des joueurs concernés moins le taux attendu (1 / nombre de joueurs de leur partie), en points. Tri par défaut sur cette colonne.
+- Les simulations se cumulent (case « Cumuler », cochée par défaut) et sont gardées dans le navigateur (`localStorage` `ch_agg`) ; bouton « Réinitialiser ». Fusion par `C.mergeAgg` (somme des compteurs).
+
+## 8. Pistes
 
 - IA qui utilise mieux les Muses.
 - Agrandissement des cartes au toucher sur mobile.

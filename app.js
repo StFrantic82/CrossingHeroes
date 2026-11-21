@@ -389,15 +389,17 @@ function renderHistory(){
 }
 
 /* ---------- Statistiques ---------- */
-let statsAgg=null, simWorker=null, trialSort={k:'win',asc:false}, itemSort={k:'win',asc:false};
+let statsAgg=null, simWorker=null, trialSort={k:'dw',asc:false}, itemSort={k:'dw',asc:false};
 $('#runSim').onclick=()=>{
   const games=+$('#simGames').value, pv=$('#simPlayers').value, players=pv==='mix'?'mix':+pv;
   $('#runSim').disabled=true; $('#runSim').innerHTML=t('running'); $('#prog').style.width='0%';
-  const done=A=>{ statsAgg=A; $('#runSim').disabled=false; $('#runSim').innerHTML=t('run'); renderStats(); };
+  const prev=($('#simCumul').checked&&statsAgg)?JSON.parse(JSON.stringify(statsAgg)):null;
+  const comb=A=>prev?C.mergeAgg(JSON.parse(JSON.stringify(prev)),A):A;
+  const done=A=>{ statsAgg=comb(A); saveAgg(); $('#runSim').disabled=false; $('#runSim').innerHTML=t('run'); renderStats(); };
   try{
     if(simWorker) simWorker.terminate();
-    simWorker=new Worker('sim-worker.js?v=5');
-    simWorker.onmessage=e=>{ $('#prog').style.width=(e.data.progress*100).toFixed(1)+'%'; if(e.data.agg){ statsAgg=e.data.agg; renderStats(); } if(e.data.done) done(e.data.agg); };
+    simWorker=new Worker('sim-worker.js?v=6');
+    simWorker.onmessage=e=>{ $('#prog').style.width=(e.data.progress*100).toFixed(1)+'%'; if(e.data.agg&&!e.data.done){ statsAgg=comb(e.data.agg); renderStats(); } if(e.data.done) done(e.data.agg); };
     simWorker.onerror=()=>{ simWorker=null; runMain(games,players,done); };
     simWorker.postMessage({games,players});
   }catch(err){ runMain(games,players,done); }
@@ -411,6 +413,10 @@ function runMain(games,players,done){
     if(i<games) setTimeout(step,0); else done(A);
   })();
 }
+function saveAgg(){ try{ localStorage.setItem('ch_agg',JSON.stringify(statsAgg)); }catch(e){} }
+try{ const s=JSON.parse(localStorage.getItem('ch_agg')); if(s&&s.games) statsAgg=s; }catch(e){}
+$('#simReset').onclick=()=>{ statsAgg=null; try{ localStorage.removeItem('ch_agg'); }catch(e){} renderStats(); };
+const dlt=x=>{ if(!isFinite(x)) return '–'; const v=Math.round(x*100); return `<span class="dl ${v>0?'up':v<0?'dn':''}">${v>0?'+':''}${v} pt</span>`; };
 const pct=x=>isFinite(x)?(x*100).toFixed(0)+'%':'–';
 const f1=x=>isFinite(x)?x.toFixed(1):'–';
 function hbar(lab,v,max,txt,ref,tip,zoom){ return `<div class="hb ${zoom?'zr':''}" title="${esc(tip||'')}" ${zoom?`data-zoom="${zoom[0]}" data-cap="${esc(zoom[1])}"`:''}><div class="lab">${lab}</div><div class="tr"><i style="width:${Math.max(0,Math.min(100,v/max*100))}%"></i>${ref!=null?`<span class="ref" style="left:${ref/max*100}%"></span>`:''}</div><div class="v">${txt}</div></div>`; }
@@ -448,7 +454,7 @@ function renderStats(){
   const dh=[]; for(let d=0;d<=8;d++) dh.push([d,A.doneHist[d]||0]);
   h+=`<div class="panel"><div class="ptitle">${t('doneT')}</div>${cols(dh,(k,v)=>`${k} : ${pct(v/P)}`)}</div>`;
   // épreuves
-  const trs=C.TRIALS.map(tr=>{ const x=A.trials[tr.id]; return {id:tr.id, name:trialName(tr.id), god:tr.god, req:tr.r.length, taken:x.taken/A.games, done:x.taken?x.done/x.taken:NaN, vp:x.done?x.vp/x.done:NaN, win:x.done?x.winDone/x.done:NaN}; });
+  const trs=C.TRIALS.map(tr=>{ const x=A.trials[tr.id]; return {id:tr.id, name:trialName(tr.id), god:tr.god, req:tr.r.length, taken:x.taken/A.games, done:x.taken?x.done/x.taken:NaN, vp:x.done?x.vp/x.done:NaN, win:x.done?x.winDone/x.done:NaN, dw:x.done?(x.winDone-x.expDone)/x.done:NaN}; });
   h+=`<div class="panel full"><div class="ptitle">${t('trialT')} <span class="zeusbar">${t('sortHint')}</span></div><div class="tblwrap">${table(trs,trialSort,'trial',[
     ['name',t('colName'),r=>`<img class="th" src="a/t${r.id}a.webp" alt="">${esc(r.name)}`],
     ['god',t('colGod'),r=>icG(r.god)],
@@ -456,16 +462,18 @@ function renderStats(){
     ['taken',t('colTaken'),r=>pct(r.taken),t('tipTaken')],
     ['done',t('colDone'),r=>`${pct(r.done)}<span class="bar" style="width:${(r.done||0)*50}px"></span>`,t('tipDone')],
     ['vp',t('colVP'),r=>f1(r.vp)],
-    ['win',t('colWin'),r=>`${pct(r.win)}<span class="bar" style="width:${(r.win||0)*50}px"></span>`,t('tipWin')]],r=>[`a/t${r.id}a.webp`,trialCap(r.id)])}</div></div>`;
+    ['win',t('colWin'),r=>`${pct(r.win)}<span class="bar" style="width:${(r.win||0)*50}px"></span>`,t('tipWin')],
+    ['dw',t('colDelta'),r=>dlt(r.dw),t('tipDelta')]],r=>[`a/t${r.id}a.webp`,trialCap(r.id)])}</div></div>`;
   // objets
-  const its=Object.keys(C.ITEMS).map(Number).map(id=>{ const x=A.items[id]; return {id, name:itemName(id), own:x.own/A.games, free:x.own?x.free/x.own:NaN, vp:x.own?x.vp/x.own:NaN, win:x.own?x.win/x.own:NaN, cost:C.ITEMS[id].cost}; });
+  const its=Object.keys(C.ITEMS).map(Number).map(id=>{ const x=A.items[id]; return {id, name:itemName(id), own:x.own/A.games, free:x.own?x.free/x.own:NaN, vp:x.own?x.vp/x.own:NaN, win:x.own?x.win/x.own:NaN, dw:x.own?(x.win-x.exp)/x.own:NaN, cost:C.ITEMS[id].cost}; });
   h+=`<div class="panel full"><div class="ptitle">${t('itemT')}</div><div class="tblwrap">${table(its,itemSort,'item',[
     ['name',t('colName'),r=>`<img class="th" src="a/i${r.id}.webp" alt="">${esc(r.name)}`],
     ['cost',t('cost'),r=>icCoin(r.cost)],
     ['own',t('colOwn'),r=>pct(r.own),t('tipOwn')],
     ['free',t('colFree'),r=>pct(r.free),t('tipFree')],
     ['vp',t('colVP'),r=>f1(r.vp)],
-    ['win',t('colWin'),r=>`${pct(r.win)}<span class="bar" style="width:${(r.win||0)*50}px"></span>`,t('tipWinI')]],r=>[`a/i${r.id}.webp`,itemCap(r.id)])}</div></div>`;
+    ['win',t('colWin'),r=>`${pct(r.win)}<span class="bar" style="width:${(r.win||0)*50}px"></span>`,t('tipWinI')],
+    ['dw',t('colDelta'),r=>dlt(r.dw),t('tipDelta')]],r=>[`a/i${r.id}.webp`,itemCap(r.id)])}</div></div>`;
   el.innerHTML=h;
 }
 function table(rows,sort,kind,colsDef,zoomOf){
