@@ -96,7 +96,22 @@ Pas d'étape de construction : les fichiers de la racine sont servis tels quels.
 - « Δ victoire » (Épreuves et Objets) : taux de victoire des joueurs concernés moins le taux attendu (1 / nombre de joueurs de leur partie), en points. Tri par défaut sur cette colonne.
 - Les simulations se cumulent (case « Cumuler », cochée par défaut) et sont gardées dans le navigateur (`localStorage` `ch_agg`) ; bouton « Réinitialiser ». Fusion par `C.mergeAgg` (somme des compteurs).
 
-## 8. Pistes
+## 8. Extension Guerre de Troie (21 novembre)
+
+- Option « Extension Guerre de Troie » sur l'accueil (solo, mémorisée), dans le salon en ligne (choix de l'hôte) et dans le simulateur (Non / Oui / Mixte).
+- 12 Épreuves de Troie (ids 101 à 112, `TROY_TRIALS`, dieu `TROY`), ajoutées à la pioche. Elles ne comptent ni pour Zeus ni pour les Objets des dieux. Relevé dans `src/troy_trials.txt`.
+- Nouveaux scores : `items` (PV × Objets possédés) et `god` avec `TROY` (PV × Épreuves de Troie, réussies ou non).
+- Héros : 1 PV par symbole au recto ; après 2 Épreuves de Troie réussies, le Héros se retourne (`flipped`) : 3 PV par symbole et Gloire 1/4/9/16/25 (`GLORY_TROY`).
+- Pouvoirs (actifs dès le recto, `power(p, héros)`) :
+  - Ulysse (Ruse) : 1 fois par tour, 1 or → joker définitif sur une Épreuve de sa grille (`joker`, bouton en phase A ou C).
+  - Ajax (Endurance) : le symbole des Compétences qui portent une Gloire devient un joker.
+  - Diomède (Chance) : 1 renouvellement de rangée gratuit par tour (n'est pas compté dans les Muses).
+  - Achille (Force) : tous les Objets coûtent 2 or (`itemCost`).
+  - Ménélas (Sagesse) : 1 or par Compétence prise hors des 2 colonnes de l'Épreuve, autant de fois que voulu.
+- Visuels : les 24 faces des Épreuves de Troie ont été retravaillées (palette réduite en aplats, crème/or du jeu, grain) par `src/troy_style.py` ; images `a/t101a…t112b`, masques dorés `a/m101…m112`, Héros `a/ht_<héros>_1|2`.
+- Équilibrage (600 parties IA à 3 joueurs, extension) : Ajax 54 % de victoires (96 PV), Achille 39 % (92), Diomède 29 % (85), Ulysse 23 % (82), Ménélas 23 % (80) ; attendu 33 %. Ajax paraît trop fort, Ulysse et Ménélas un peu faibles (l'IA les joue peut-être moins bien qu'un humain).
+
+## 9. Pistes
 
 - IA qui utilise mieux les Muses.
 - Agrandissement des cartes au toucher sur mobile.

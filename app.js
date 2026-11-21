@@ -9,7 +9,9 @@ try{ const l=localStorage.getItem('ch_lang'); if(I18N[l]) L=l; else if(/^it/i.te
 
 /* ---------- Traduction ---------- */
 function t(k,...a){ const v=I18N[L][k]; return typeof v==='function'?v(...a):v; }
-const trialName=id=>L==='fr'?C.TR[id].n:NAMES.trials[L][id-1];
+const trialName=id=>L==='fr'?C.TR[id].n:id>100?NAMES.troy[L][id-101]:NAMES.trials[L][id-1];
+const heroImg=q=>q.troy?`a/ht_${q.hero}_${q.flipped?2:1}.webp`:`a/h_${q.hero}.webp`;
+let troyOn=false; try{ troyOn=localStorage.getItem('ch_troy')==='1'; }catch(e){}
 const itemName=id=>L==='fr'?C.ITEMS[id].n:NAMES.items[L][id-1];
 const itemDesc=id=>L==='fr'?C.ITEMS[id].d:NAMES.itemDesc[L][id-1];
 const symName=s=>NAMES.sym[L][s];
@@ -32,6 +34,7 @@ function trialScoreHtml(tid){
   if(s.t==='flat') return icVP(s.v);
   if(s.t==='item') return `${icVP(s.v)} / ${icVP(s.v*2)} + <img class="ico it" src="a/i${s.item}.webp" alt=""> ${esc(itemName(s.item))}`;
   if(s.t==='god') return `${icVP(s.v)} × ${icG(s.god)}`;
+  if(s.t==='items') return `${icVP(s.v)} × ${icItem()}`;
   return `${icVP(s.v)} × ${icGlory()}`;
 }
 function bonusHtml(tid){ const b=C.TR[tid].b; const a=[]; if(b.g) a.push(icCoin(b.g)); if(b.s) a.push(icCard(b.s)); return a.length?icons(a):t('none'); }
@@ -55,6 +58,7 @@ document.querySelector('.tabs').addEventListener('click',e=>{ const b=e.target.c
 let setup=[{name:'Moi',ai:false},{name:'Ariane',ai:true}];
 try{ const s=JSON.parse(localStorage.getItem('ch_setup2')); if(Array.isArray(s)&&s.length>=2) setup=s; }catch(e){}
 function renderSetup(){
+  const tb=$('#troyOpt'); if(tb){ tb.checked=troyOn; }
   $('#plist').innerHTML=setup.map((p,i)=>`
     <div class="prow">
       <span class="dot" style="background:${COLORS[i]}"></span>
@@ -71,11 +75,12 @@ $('#plist').addEventListener('click',e=>{
   if(b.dataset.ai!=null){ setup[+b.dataset.i].ai=b.dataset.ai==='1'; renderSetup(); }
   if(b.dataset.rm!=null){ setup.splice(+b.dataset.rm,1); renderSetup(); }
 });
+$('#troyOpt').onchange=e=>{ troyOn=e.target.checked; try{ localStorage.setItem('ch_troy',troyOn?'1':'0'); }catch(x){} };
 $('#addp').onclick=()=>{ const used=setup.map(p=>p.name); setup.push({name:AI_NAMES.find(n=>!used.includes(n))||'Héros',ai:true}); renderSetup(); };
 $('#start').onclick=()=>{
   setup.forEach((p,i)=>{ p.name=(p.name||'').trim()||`${t('human')} ${i+1}`; });
   try{ localStorage.setItem('ch_setup2',JSON.stringify(setup)); }catch(e){}
-  startGame(C.newGame({players:setup}));
+  startGame(C.newGame({players:setup,troy:troyOn}));
 };
 function startGame(g){
   G=g; logEv=[]; doneAt.clear(); flushEvents();
@@ -124,7 +129,9 @@ function fmtEvent(e){
     case 'refill': return lg.refill({...a,coin:icCoin('+1')});
     case 'done': return lg.done({...a,t:esc(trialName(e.t))});
     case 'zeus': return lg.zeus(a);
-    case 'item': return lg.item({...a,i:`<b>${esc(itemName(e.i))}</b>${e.free?'':' '+icCoin('−'+C.ITEMS[e.i].cost)}`,free:e.free});
+    case 'item': return lg.item({...a,i:`<b>${esc(itemName(e.i))}</b>${e.free?'':' '+icCoin('−'+(e.cost!=null?e.cost:C.ITEMS[e.i].cost))}`,free:e.free});
+    case 'flip': return t('logFlip',a.p);
+    case 'joker': return t('logJoker',a.p,esc(trialName(e.t)),icCoin('−1'));
     case 'end': return lg.end();
   }
   return '';
@@ -150,6 +157,11 @@ function trialCap(tid){
 }
 function skillCap(tid){ const s=C.SKILLS[tid]; return `<b>${t('skill')}</b><div class="r">${skillIcons(tid)} ${s.syms.map(symName).join(' + ')}</div>${s.gold?`<div class="r">${t('goldOnTake')}</div>`:''}`; }
 function itemCap(id){ return `<b>${esc(itemName(id))}</b><div class="r"><span class="k">${t('cost')}</span>${icCoin(C.ITEMS[id].cost)}</div><div class="r">${esc(itemDesc(id))}</div>`; }
+function heroCapP(q){
+  if(!q.troy) return heroCap(q.hero);
+  const s=NAMES.heroSym[q.hero];
+  return `<b>${t('troyHero')[q.hero]} · ${heroName(q.hero)}</b><div class="r">${icS(s)} ${q.flipped?3:1} ${t('perSym')}</div><div class="r">${icGlory()} ${q.flipped?'1/4/9/16/25':'1/3/6/10/15'}</div><div class="r">${t('power')[q.hero]}</div><div class="r">${q.flipped?t('flipped'):t('flipHow')}</div>`;
+}
 function heroCap(h){ return `<b>${t('hero')} ${heroName(h)}</b><div class="r">${icS(NAMES.heroSym[h])} ${t('heroCap',heroName(h))}</div>`; }
 
 function render(){
@@ -161,22 +173,26 @@ function render(){
   else if(p.ai){ ins=t('aiThinks',esc(p.name)); sub=t('turnOf',p.turns+1,C.TURNS); }
   else if(ph==='A'){
     ins = G.sel==null ? t('chooseTrial',esc(p.name)) : t('placeTrial',esc(trialName(G.trialRow[G.sel])));
-    sub = `${t('turnOf',p.turns+1,C.TURNS)} · ${t('musesHint')}`;
+    sub = `${t('turnOf',p.turns+1,C.TURNS)} · ${C.power(p,'luck')&&!p.usedFree?t('diomedeHint'):t('musesHint')}`;
     if(G.sel!=null) acts=`<button class="btn ghost sm" data-act="unsel">${t('cancel')}</button>`;
   }
   else if(ph==='skill'||ph==='torch'){
     ins = G.sel==null ? (ph==='torch'?t('torch'):t('takeSkill',G.pend.skills)) : t('placeSkill');
-    sub = ph==='torch'?'':t('colsHint');
+    sub = ph==='torch'?'':(C.power(p,'wisdom')?t('menelasHint'):t('colsHint'));
   }
   else if(ph==='zeus'){ ins=t('zeusPick'); }
   else if(ph==='C'){ ins=t('phaseC'); sub=t('youHave',p.gold); acts=`<button class="btn sm" data-act="pass">${t('endTurn')}</button>`; }
+  if(hv&&C.canJoker(G)&&C.jokerTargets(G).length&&(ph==='A'||ph==='C')){
+    if(G.sel&&G.sel.joker){ ins=t('jokerPick'); acts=`<button class="btn ghost sm" data-act="unsel">${t('cancel')}</button>`; }
+    else if(G.sel==null) acts=`<button class="btn ghost sm" data-act="joker">${t('jokerBtn')} · ${icCoin(1)}</button>`+acts;
+  }
   $('#instr').innerHTML=`${ins}<small>${sub}</small>`;
   $('#actions').innerHTML=acts;
 
   $('#ptabs').innerHTML=G.players.map((q,i)=>{
     const s=C.score(q);
     return `<button class="ptab ${i===G.cur&&ph!=='end'?'cur':''} ${i===view?'view':''}" data-view="${i}">
-      <img class="hav" src="a/h_${q.hero}.webp" alt="">
+      <img class="hav" src="${heroImg(q)}" alt="">
       <div><div class="nm"><span class="turnpip" style="background:${COLORS[i]}"></span>${esc(q.name)} ${q.ai?`<span class="badge">${t('ai')}</span>`:''}</div>
       <div class="meta">${icVP(s.total)} ${icCoin(q.gold)} · ${t('turnShort',Math.min(q.turns+(i===G.cur&&ph!=='end'?1:0),C.TURNS),C.TURNS)}</div></div></button>`;
   }).join('');
@@ -199,14 +215,15 @@ function render(){
   m+=`<div style="grid-row:2;grid-column:11;align-self:center"><button class="muse" data-muse="skill0" title="${t('muses')}">↻</button></div>`;
   m+=`<div style="grid-row:3;grid-column:11;align-self:center"><button class="muse" data-muse="skill1" title="${t('muses')}">↻</button></div>`;
   $('#market').innerHTML=m;
-  document.querySelectorAll('[data-muse]').forEach(b=>b.disabled=!(hv&&ph==='A'&&p.gold>=1));
+  const freeR=C.power(p,'luck')&&!p.usedFree;
+  document.querySelectorAll('[data-muse]').forEach(b=>{ b.disabled=!(hv&&ph==='A'&&(p.gold>=1||freeR)); b.classList.toggle('freeR',hv&&ph==='A'&&freeR); });
   $('#deckinfo').textContent=t('deckInfo',G.trialDeck.length,G.skillDeck.length);
 
   let it='';
   G.itemRow.forEach((id,i)=>{
     if(!id){ it+=`<div class="icard empty"></div>`; return; }
-    const can=hv&&(ph==='zeus'||(ph==='C'&&p.gold>=C.ITEMS[id].cost));
-    const dim=hv&&ph==='C'&&p.gold<C.ITEMS[id].cost;
+    const can=hv&&(ph==='zeus'||(ph==='C'&&p.gold>=C.itemCost(p,id)));
+    const dim=hv&&ph==='C'&&p.gold<C.itemCost(p,id);
     it+=`<div class="icard ${can?'pick':''}" data-item="${i}" data-zoom="a/i${id}.webp" data-cap="${esc(itemCap(id))}"><img src="a/i${id}.webp" alt="${esc(itemName(id))}">${dim?'<div class="cant"></div>':''}</div>`;
   });
   it+=`<div class="icard" style="opacity:${G.itemPile.length?1:.2}"><img src="a/i_back.webp" alt=""></div>`;
@@ -227,7 +244,7 @@ function shine(tid,q,k){
 }
 function renderBoard(){
   const q=G.players[view], ph=G.phase, mine=view===G.cur&&humanTurn();
-  $('#boardTitle').innerHTML=`<span>${esc(t('gridOf',q.name,heroName(q.hero)))}</span>${view!==G.cur&&ph!=='end'?`<button class="muse" data-view="${G.cur}">${t('seeActive')}</button>`:''}`;
+  $('#boardTitle').innerHTML=`<span>${esc(t('gridOf',q.name,q.troy?t('troyHero')[q.hero]+' ('+heroName(q.hero)+')':heroName(q.hero)))}${q.troy&&q.flipped?' ⚔':''}</span>${view!==G.cur&&ph!=='end'?`<button class="muse" data-view="${G.cur}">${t('seeActive')}</button>`:''}`;
   const freeCells=mine&&ph==='A'&&G.sel!=null?C.freeCells(q):[];
   const avail=mine&&(ph==='skill'||ph==='torch')&&G.sel&&G.sel.r!=null?C.availableEdges(q):[];
   let h='';
@@ -239,10 +256,11 @@ function renderBoard(){
   });
   for(let k=0;k<9;k++){
     const r=Math.floor(k/3)+2, c=k%3+2, tid=q.cells[k];
-    if(k===4){ h+=`<div class="cell" style="grid-row:${r};grid-column:${c}" data-zoom="a/h_${q.hero}.webp" data-cap="${esc(heroCap(q.hero))}"><img src="a/h_${q.hero}.webp" alt=""></div>`; continue; }
+    if(k===4){ h+=`<div class="cell" style="grid-row:${r};grid-column:${c}" data-zoom="${heroImg(q)}" data-cap="${esc(heroCapP(q))}"><img src="${heroImg(q)}" alt=""></div>`; continue; }
     if(tid==null){ h+=`<div class="cell free ${freeCells.includes(k)?'pick':''}" style="grid-row:${r};grid-column:${c}" data-cell="${k}"></div>`; continue; }
-    const done=q.done[k], miss=done?0:C.missingFor(q,k);
-    h+=`<div class="cell" style="grid-row:${r};grid-column:${c}" data-zoom="${trialImg(tid,done)}" data-cap="${esc(trialCap(tid))}"><img src="${trialImg(tid,done)}" alt="${esc(trialName(tid))}">${done?`${shine(tid,q,k)}<span class="ok">✓</span>`:`<span class="miss">${t('missing',miss)}</span>`}</div>`;
+    const done=q.done[k], miss=done?0:C.missingFor(q,k), jk=(q.jokers&&q.jokers[k])||0;
+    const jt=mine&&G.sel&&G.sel.joker&&C.jokerTargets(G).includes(k);
+    h+=`<div class="cell ${jt?'pick':''}" ${jt?`data-jk="${k}"`:''} style="grid-row:${r};grid-column:${c}" data-zoom="${trialImg(tid,done)}" data-cap="${esc(trialCap(tid))}"><img src="${trialImg(tid,done)}" alt="${esc(trialName(tid))}">${done?`${shine(tid,q,k)}<span class="ok">✓</span>`:`<span class="miss">${t('missing',miss)}</span>`}${jk?`<span class="jk">?${jk>1?'×'+jk:''}</span>`:''}</div>`;
   }
   $('#board').innerHTML=h;
   const s=C.score(q);
@@ -262,7 +280,7 @@ function renderBoard(){
 
 /* ---------- Interactions ---------- */
 document.addEventListener('click',e=>{
-  const el=e.target.closest('[data-view],[data-muse],[data-trial],[data-cell],[data-skill],[data-edge],[data-item],[data-act],[data-close],[data-quit]');
+  const el=e.target.closest('[data-jk],[data-view],[data-muse],[data-trial],[data-cell],[data-skill],[data-edge],[data-item],[data-act],[data-close],[data-quit]');
   if(!el) return;
   if(el.dataset.close!=null){ hideModal(); return; }
   if(el.dataset.quit!=null){ hideModal(); goHome(); return; }
@@ -274,6 +292,8 @@ document.addEventListener('click',e=>{
   if(!G||!humanTurn()) return;
   const ph=G.phase;
   if(el.dataset.act==='unsel'){ G.sel=null; render(); return; }
+  if(el.dataset.act==='joker'){ G.sel={joker:true}; view=G.cur; render(); return; }
+  if(el.dataset.jk!=null){ G.sel=null; act('joker',+el.dataset.jk); return; }
   if(el.dataset.act==='pass'){ act('pass'); return; }
   if(el.dataset.muse&&ph==='A'){ act('muses',el.dataset.muse); return; }
   if(el.dataset.trial!=null&&ph==='A'){ const i=+el.dataset.trial; G.sel=G.sel===i?null:i; view=G.cur; render(); return; }
@@ -286,11 +306,11 @@ document.addEventListener('click',e=>{
   if(el.dataset.edge!=null&&(ph==='skill'||ph==='torch')&&G.sel&&G.sel.r!=null){ const {r,c}=G.sel; G.sel=null; act('takeSkill',r,c,el.dataset.edge); return; }
   if(el.dataset.item!=null){ const i=+el.dataset.item; if(ph==='zeus'){ act('zeusPick',i); return; } if(ph==='C'){ act('buy',i); return; } }
 });
-const ACTS=['muses','placeTrial','takeSkill','zeusPick','buy','pass'];
+const ACTS=['muses','placeTrial','takeSkill','zeusPick','buy','pass','joker'];
 function act(fn,...args){
   if(!ACTS.includes(fn)) return;
   if(MPON()&&!MP.host){ G.sel=null; mpSend({t:'act',fn,args}); render(); return; }
-  C[fn](G,...args); if(fn==='muses'){ render(); return; } after();
+  C[fn](G,...args); if(fn==='muses'||(fn==='joker'&&G.phase==='A')){ render(); return; } after();
 }
 function after(){
   if(G.phase==='A'||G.phase==='end') view=G.cur;
@@ -350,7 +370,7 @@ $('#modal').addEventListener('click',e=>{ if(e.target.id==='modal') hideModal();
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') hideModal(); });
 function showHelp(){
   showModal(`<div class="ptitle"><span>${t('aidTitle')}</span><button class="btn ghost sm" data-close>${t('close')}</button></div>
-  <div class="rules">${t('rules').map(r=>`<p>${r}</p>`).join('')}<p>${t('hover')}</p></div>
+  <div class="rules">${t('rules').map(r=>`<p>${r}</p>`).join('')}<p>${t('hover')}</p><h3 class="disp" style="font-size:17px;margin:14px 0 4px">${icG('TROY')} ${t('troyName')}</h3>${t('troyRules').map(r=>`<p>${r}</p>`).join('')}</div>
   <div class="aid" style="margin-top:12px"><img src="a/aid_front.webp" alt=""><img src="a/aid_back.webp" alt=""></div>`);
 }
 function showScores(){
@@ -398,17 +418,18 @@ $('#runSim').onclick=()=>{
   const done=A=>{ statsAgg=comb(A); saveAgg(); $('#runSim').disabled=false; $('#runSim').innerHTML=t('run'); renderStats(); };
   try{
     if(simWorker) simWorker.terminate();
-    simWorker=new Worker('sim-worker.js?v=6');
+    simWorker=new Worker('sim-worker.js?v=7');
     simWorker.onmessage=e=>{ $('#prog').style.width=(e.data.progress*100).toFixed(1)+'%'; if(e.data.agg&&!e.data.done){ statsAgg=comb(e.data.agg); renderStats(); } if(e.data.done) done(e.data.agg); };
     simWorker.onerror=()=>{ simWorker=null; runMain(games,players,done); };
-    simWorker.postMessage({games,players});
+    simWorker.postMessage({games,players,troy:$('#simTroy').value==='mix'?'mix':$('#simTroy').value==='1'});
   }catch(err){ runMain(games,players,done); }
 };
 function runMain(games,players,done){
   const A=C.newAgg(); let i=0;
   (function step(){
     const end=Math.min(games,i+3);
-    for(;i<end;i++) C.addAgg(A,C.simulate(players==='mix'?2+Math.floor(Math.random()*4):players));
+    const tv=$('#simTroy').value;
+    for(;i<end;i++) C.addAgg(A,C.simulate(players==='mix'?2+Math.floor(Math.random()*4):players, tv==='mix'?Math.random()<.5:tv==='1'));
     $('#prog').style.width=(i/games*100).toFixed(1)+'%';
     if(i<games) setTimeout(step,0); else done(A);
   })();
@@ -444,17 +465,18 @@ function renderStats(){
   // héros
   const hs=Object.entries(A.heroes).filter(([,x])=>x.n).sort((a,b)=>b[1].win/b[1].n-a[1].win/a[1].n);
   const share=A.games/P;
-  h+=`<div class="panel"><div class="ptitle">${t('heroT')}</div>${hs.map(([k,x])=>hbar(`<img class="ico sq" src="a/h_${k}.webp" alt=""> ${icS(NAMES.heroSym[k])} ${heroName(k)}`,x.win/x.n,0.6,pct(x.win/x.n),share,`${t('avgScore')} ${f1(x.total/x.n)} · n=${x.n}`,[`a/h_${k}.webp`,heroCap(k)])).join('')}<div class="note">▏ = ${t('expected')} · ${t('avgScore')} : ${hs.map(([k,x])=>`${heroName(k)} ${f1(x.total/x.n)}`).join(' · ')}</div></div>`;
+  h+=`<div class="panel"><div class="ptitle">${t('heroT')}</div>${hs.map(([k,x])=>{ const tr=k.startsWith('troy_'), hk=tr?k.slice(5):k, img=tr?`a/ht_${hk}_1.webp`:`a/h_${hk}.webp`, nm=tr?`${t('troyHero')[hk]} (${heroName(hk)})`:heroName(hk);
+    return hbar(`<img class="ico sq" src="${img}" alt=""> ${icS(NAMES.heroSym[hk])} ${nm}`,x.win/x.n,0.6,pct(x.win/x.n),share,`${t('avgScore')} ${f1(x.total/x.n)} · n=${x.n}${tr?` · ${t('flipRate')} ${pct((x.flipped||0)/x.n)}`:''}`,[img,tr?heroCapP({troy:1,hero:hk,flipped:false}):heroCap(hk)]); }).join('')}<div class="note">▏ = ${t('expected')} · ${t('avgScore')} : ${hs.map(([k,x])=>`${k.startsWith('troy_')?t('troyHero')[k.slice(5)]:heroName(k)} ${f1(x.total/x.n)}`).join(' · ')}</div></div>`;
   // dieux
   const gm=Math.max(...C.GOD_KEYS.map(g=>A.gods[g].done/P));
-  h+=`<div class="panel"><div class="ptitle">${t('godT')}</div>${C.GOD_KEYS.map(g=>hbar(`${icG(g)} ${godName(g)}`,A.gods[g].done/P,gm,f1(A.gods[g].done/P))).join('')}</div>`;
+  h+=`<div class="panel"><div class="ptitle">${t('godT')}</div>${C.GOD_KEYS.concat(A.troyPlayers?['TROY']:[]).map(g=>hbar(`${icG(g)} ${godName(g)}`,A.gods[g].done/(g==='TROY'?A.troyPlayers:P),gm,f1(A.gods[g].done/(g==='TROY'?A.troyPlayers:P)))).join('')}</div>`;
   // histogrammes
   const hk=Object.keys(A.hist).map(Number).sort((a,b)=>a-b); const hist=[]; for(let b=hk[0];b<=hk[hk.length-1];b+=10) hist.push([b,A.hist[b]||0]);
   h+=`<div class="panel"><div class="ptitle">${t('histT')}</div>${cols(hist,(k,v)=>`${k}–${k+9} PV : ${pct(v/P)}`)}</div>`;
   const dh=[]; for(let d=0;d<=8;d++) dh.push([d,A.doneHist[d]||0]);
   h+=`<div class="panel"><div class="ptitle">${t('doneT')}</div>${cols(dh,(k,v)=>`${k} : ${pct(v/P)}`)}</div>`;
   // épreuves
-  const trs=C.TRIALS.map(tr=>{ const x=A.trials[tr.id]; return {id:tr.id, name:trialName(tr.id), god:tr.god, req:tr.r.length, taken:x.taken/A.games, done:x.taken?x.done/x.taken:NaN, vp:x.done?x.vp/x.done:NaN, win:x.done?x.winDone/x.done:NaN, dw:x.done?(x.winDone-x.expDone)/x.done:NaN}; });
+  const trs=C.TRIALS.concat(A.troyPlayers?C.TROY_TRIALS:[]).map(tr=>{ const x=A.trials[tr.id]; return {id:tr.id, name:trialName(tr.id), god:tr.god, req:tr.r.length, taken:x.taken/A.games, done:x.taken?x.done/x.taken:NaN, vp:x.done?x.vp/x.done:NaN, win:x.done?x.winDone/x.done:NaN, dw:x.done?(x.winDone-x.expDone)/x.done:NaN}; });
   h+=`<div class="panel full"><div class="ptitle">${t('trialT')} <span class="zeusbar">${t('sortHint')}</span></div><div class="tblwrap">${table(trs,trialSort,'trial',[
     ['name',t('colName'),r=>`<img class="th" src="a/t${r.id}a.webp" alt="">${esc(r.name)}`],
     ['god',t('colGod'),r=>icG(r.god)],

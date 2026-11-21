@@ -1,0 +1,14 @@
+# id | nom EN | requis | bonus | score   (dieu = TROY pour toutes)
+# scores : Nxtroy (par Épreuve Troie), Nxitem (par Objet), Nxglory
+T1 | The Judgment of Paris | W W W E | s1 | 4xtroy
+T2 | The Abduction of Helen | L L E E | g2 | 9
+T3 | The Sacrifice of Iphigenia | W E E E | g2 s2 | 2xtroy
+T4 | Penthesilea, Queen of the Amazons | S C L | g1 s2 | 2xitem
+T5 | Duel with Paris | S W C | s2 | 2xglory
+T6 | Slaying Sarpedon | W S E | g1 | 4xitem
+T7 | Stealing the Horses of Rhesus | C C S W L | s1 | 17
+T8 | Wounding Ares on the Battlefield | L L L C | g1 s1 | 3xtroy
+T9 | Duel with Hector | S S S L | g1 | 5xtroy
+T10 | Facing the River Scamander | E E S | s2 | 2xglory
+T11 | Bringing back Philoctetes | W W W C | s1 | 13
+T12 | The Trojan Horse | C C C S | - | 6xtroy

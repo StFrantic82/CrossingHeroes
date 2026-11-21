@@ -1,0 +1,16 @@
+Trojan War — Héros recto/verso (lus sur les cartes)
+Recto : 1 PV × symbole du Héros ; Gloire barème de base (colonne blanche).
+Verso (après 2 Épreuves Cheval de Troie réussies) : 3 PV × symbole ; Gloire 1/4/9/16/25 (colonne dorée).
+Pouvoir identique recto/verso :
+- Ruse (Ulysse) : 1 or -> 1 symbole joker (?)
+- Endurance (Ajax) : symboles des Compétences avec Gloire comptent double
+- Chance (Diomède) : renouveler 1 rangée gratuitement (Épreuves / Compétences / Objets) ×1
+- Force (Achille) : Objets = 2 or
+- Sagesse (Ménélas) : 1 or -> 1 carte Compétence au choix (?)
+Précisions de l'auteur (21/11) :
+- Ulysse : 1 or, 1×/manche, ajoute un symbole joker virtuel (définitif) à une Épreuve pour la compléter.
+- Ménélas : 1 or pour prendre une Compétence ailleurs que dans les 2 colonnes de l'Épreuve (pas une Compétence en plus).
+- Ajax : le symbole des Compétences qui portent une Gloire devient joker (et non doublé).
+- Diomède : renouvelle 1 rangée gratuitement (1×/tour, phase A).
+- Achille : tous les Objets coûtent 2 or.
+- Ménélas : autant de fois que voulu (1 or par Compétence prise hors des 2 colonnes, donc 1 ou 2 fois par tour selon le bonus).

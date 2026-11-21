@@ -91,7 +91,7 @@ function mpView(){
   v.busy=busy;
   return v;
 }
-function mpLobbyMsg(){ return {t:'lobby',code:MP.code,started:MP.started,players:MP.players.map(p=>({name:p.name,ai:!!p.ai,online:p.online}))}; }
+function mpLobbyMsg(){ return {t:'lobby',code:MP.code,troy:!!MP.troy,started:MP.started,players:MP.players.map(p=>({name:p.name,ai:!!p.ai,online:p.online}))}; }
 let mpLastSent='';
 function mpBroadcast(force){
   if(!MP.on||!MP.host) return;
@@ -144,7 +144,7 @@ async function mpHost(){
     catch(e){ if(!(e&&e.type==='unavailable-id')){ MP.busy=false; MP.err=mpErrTxt(e); mpRender(); return; } }
   }
   if(!MP.net){ MP.busy=false; MP.err=mpErrTxt({}); mpRender(); return; }
-  Object.assign(MP,{busy:false,on:true,host:true,seat:0,stage:'lobby',started:false,players:[{name:mpName(),ai:false,token:'host',conn:null,online:true}]});
+  Object.assign(MP,{troy:troyOn,busy:false,on:true,host:true,seat:0,stage:'lobby',started:false,players:[{name:mpName(),ai:false,token:'host',conn:null,online:true}]});
   mpRender();
 }
 const MP_AI=['Ariane','Jason','Atalante','Persée','Médée','Thésée','Hélène'];
@@ -154,7 +154,7 @@ function mpStart(){
   if(!MP.host||MP.started) return;
   const P=MP.players; if(P.length<2||P.some(p=>!p.online)) return;
   MP.started=true; MP.stage='game';
-  startGame(C.newGame({players:P.map(p=>({name:p.name,ai:p.ai}))}));
+  startGame(C.newGame({troy:!!MP.troy,players:P.map(p=>({name:p.name,ai:p.ai}))}));
   mpBroadcast(true);
 }
 function mpBackToLobby(){
@@ -190,7 +190,7 @@ function mpClientMsg(m){
   }
   if(m.t==='closed'){ mpReset(true); MP.err=MPT("L'hôte a fermé le salon.",'The host closed the room.',"L'host ha chiuso la stanza."); if(G){ G=null; $('#game').classList.add('hidden'); document.querySelectorAll('.pre').forEach(el=>el.classList.remove('hidden')); showTab('play'); } mpRender(); return; }
   if(m.t==='lobby'){
-    MP.players=m.players; MP.seat=m.you; MP.started=m.started;
+    MP.players=m.players; MP.seat=m.you; MP.started=m.started; MP.troy=!!m.troy;
     if(m.view){
       const v=m.view;
       const keep = G && G.cur===v.cur && G.phase===v.phase && v.cur===MP.seat ? G.sel : v.sel;
@@ -261,6 +261,7 @@ function mpRender(){
     ${p.ai?`<span class="badge">${t('ai')}</span>`:''}${i===0?`<small>(${MPT('hôte','host','host')})</small>`:''}${i===MP.seat?`<small>(${MPT('toi','you','tu')})</small>`:''}
     <span style="margin-left:auto">${p.online?'':'🔌 '+MPT('déconnecté','offline','disconnesso')}</span>
     ${MP.host&&i>0?`<button class="rm" data-mp="rm" data-i="${i}" title="${t('remove')}">×</button>`:''}</div>`).join('')}
+  <label class="chk troyopt"><input type="checkbox" data-mp="troy" ${MP.troy?'checked':''} ${MP.host?'':'disabled'}> <img class="ico sq" src="a/g_TROY.webp" alt=""> ${t('troyName')}</label>
   ${MP.host?`<button class="addp" data-mp="addai" ${P.length>=MP_MAX?'disabled':''}>+ ${MPT('Ajouter une IA','Add an AI',"Aggiungi un'IA")}</button>
     <div class="homebtns"><button class="btn" data-mp="start" ${ok?'':'disabled'}>${MPT('Lancer la partie','Start the game','Avvia la partita')}</button></div>
     <p class="mptxt">${ok?'':P.length<2?MPT("En attente d'au moins un autre joueur…",'Waiting for at least one other player…','In attesa di almeno un altro giocatore…'):MPT('Un joueur est déconnecté.','A player is offline.','Un giocatore è disconnesso.')}</p>`
@@ -279,6 +280,7 @@ document.getElementById('mpPanel').addEventListener('click',e=>{
   else if(k==='addai') mpAddAI();
   else if(k==='rm') mpRemove(+b.dataset.i);
   else if(k==='start') mpStart();
+  else if(k==='troy'&&MP.host){ MP.troy=b.checked; mpBroadcast(true); }
 });
 document.getElementById('mpPanel').addEventListener('keydown',e=>{ if(e.target.id==='mpc'&&e.key==='Enter') mpJoin(e.target.value); });
 document.getElementById('online').onclick=()=>mpShow(true);
