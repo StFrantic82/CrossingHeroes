@@ -339,6 +339,7 @@ document.addEventListener('mouseover',e=>{
   if(!el){ zoom.style.display='none'; return; }
   const mm=/a\/t(\d+)b\.webp/.exec(el.dataset.zoom);
   zoom.innerHTML=`<div class="zwrap"><img src="${el.dataset.zoom}" alt="">${mm?`<span class="shine" style="border-radius:8px;-webkit-mask-image:url(a/m${mm[1]}.png);mask-image:url(a/m${mm[1]}.png)"></span>`:''}</div><div class="cap">${el.dataset.cap||''}</div>`;
+  zoom.classList.toggle('left',!!el.closest('#stats'));
   zoom.style.display='block';
 });
 
@@ -395,7 +396,7 @@ $('#runSim').onclick=()=>{
   const done=A=>{ statsAgg=A; $('#runSim').disabled=false; $('#runSim').innerHTML=t('run'); renderStats(); };
   try{
     if(simWorker) simWorker.terminate();
-    simWorker=new Worker('sim-worker.js?v=4');
+    simWorker=new Worker('sim-worker.js?v=5');
     simWorker.onmessage=e=>{ $('#prog').style.width=(e.data.progress*100).toFixed(1)+'%'; if(e.data.agg){ statsAgg=e.data.agg; renderStats(); } if(e.data.done) done(e.data.agg); };
     simWorker.onerror=()=>{ simWorker=null; runMain(games,players,done); };
     simWorker.postMessage({games,players});
