@@ -395,7 +395,7 @@ $('#runSim').onclick=()=>{
   const done=A=>{ statsAgg=A; $('#runSim').disabled=false; $('#runSim').innerHTML=t('run'); renderStats(); };
   try{
     if(simWorker) simWorker.terminate();
-    simWorker=new Worker('sim-worker.js?v=3');
+    simWorker=new Worker('sim-worker.js?v=4');
     simWorker.onmessage=e=>{ $('#prog').style.width=(e.data.progress*100).toFixed(1)+'%'; if(e.data.agg){ statsAgg=e.data.agg; renderStats(); } if(e.data.done) done(e.data.agg); };
     simWorker.onerror=()=>{ simWorker=null; runMain(games,players,done); };
     simWorker.postMessage({games,players});
@@ -412,7 +412,7 @@ function runMain(games,players,done){
 }
 const pct=x=>isFinite(x)?(x*100).toFixed(0)+'%':'–';
 const f1=x=>isFinite(x)?x.toFixed(1):'–';
-function hbar(lab,v,max,txt,ref,tip){ return `<div class="hb" title="${esc(tip||'')}"><div class="lab">${lab}</div><div class="tr"><i style="width:${Math.max(0,Math.min(100,v/max*100))}%"></i>${ref!=null?`<span class="ref" style="left:${ref/max*100}%"></span>`:''}</div><div class="v">${txt}</div></div>`; }
+function hbar(lab,v,max,txt,ref,tip,zoom){ return `<div class="hb ${zoom?'zr':''}" title="${esc(tip||'')}" ${zoom?`data-zoom="${zoom[0]}" data-cap="${esc(zoom[1])}"`:''}><div class="lab">${lab}</div><div class="tr"><i style="width:${Math.max(0,Math.min(100,v/max*100))}%"></i>${ref!=null?`<span class="ref" style="left:${ref/max*100}%"></span>`:''}</div><div class="v">${txt}</div></div>`; }
 function cols(entries,fmt){
   const max=Math.max(...entries.map(e=>e[1]),1);
   return `<div class="cols">${entries.map(([k,v])=>`<div class="c"><span class="tt">${fmt(k,v)}</span><i style="height:${v/max*100}%"></i></div>`).join('')}</div><div class="xl">${entries.map(([k])=>`<span>${k}</span>`).join('')}</div>`;
@@ -437,7 +437,7 @@ function renderStats(){
   // héros
   const hs=Object.entries(A.heroes).filter(([,x])=>x.n).sort((a,b)=>b[1].win/b[1].n-a[1].win/a[1].n);
   const share=A.games/P;
-  h+=`<div class="panel"><div class="ptitle">${t('heroT')}</div>${hs.map(([k,x])=>hbar(`<img class="ico sq" src="a/h_${k}.webp" alt=""> ${icS(NAMES.heroSym[k])} ${heroName(k)}`,x.win/x.n,0.6,pct(x.win/x.n),share,`${t('avgScore')} ${f1(x.total/x.n)} · n=${x.n}`)).join('')}<div class="note">▏ = ${t('expected')} · ${t('avgScore')} : ${hs.map(([k,x])=>`${heroName(k)} ${f1(x.total/x.n)}`).join(' · ')}</div></div>`;
+  h+=`<div class="panel"><div class="ptitle">${t('heroT')}</div>${hs.map(([k,x])=>hbar(`<img class="ico sq" src="a/h_${k}.webp" alt=""> ${icS(NAMES.heroSym[k])} ${heroName(k)}`,x.win/x.n,0.6,pct(x.win/x.n),share,`${t('avgScore')} ${f1(x.total/x.n)} · n=${x.n}`,[`a/h_${k}.webp`,heroCap(k)])).join('')}<div class="note">▏ = ${t('expected')} · ${t('avgScore')} : ${hs.map(([k,x])=>`${heroName(k)} ${f1(x.total/x.n)}`).join(' · ')}</div></div>`;
   // dieux
   const gm=Math.max(...C.GOD_KEYS.map(g=>A.gods[g].done/P));
   h+=`<div class="panel"><div class="ptitle">${t('godT')}</div>${C.GOD_KEYS.map(g=>hbar(`${icG(g)} ${godName(g)}`,A.gods[g].done/P,gm,f1(A.gods[g].done/P))).join('')}</div>`;
@@ -455,7 +455,7 @@ function renderStats(){
     ['taken',t('colTaken'),r=>pct(r.taken),t('tipTaken')],
     ['done',t('colDone'),r=>`${pct(r.done)}<span class="bar" style="width:${(r.done||0)*50}px"></span>`,t('tipDone')],
     ['vp',t('colVP'),r=>f1(r.vp)],
-    ['win',t('colWin'),r=>`${pct(r.win)}<span class="bar" style="width:${(r.win||0)*50}px"></span>`,t('tipWin')]])}</div></div>`;
+    ['win',t('colWin'),r=>`${pct(r.win)}<span class="bar" style="width:${(r.win||0)*50}px"></span>`,t('tipWin')]],r=>[`a/t${r.id}a.webp`,trialCap(r.id)])}</div></div>`;
   // objets
   const its=Object.keys(C.ITEMS).map(Number).map(id=>{ const x=A.items[id]; return {id, name:itemName(id), own:x.own/A.games, free:x.own?x.free/x.own:NaN, vp:x.own?x.vp/x.own:NaN, win:x.own?x.win/x.own:NaN, cost:C.ITEMS[id].cost}; });
   h+=`<div class="panel full"><div class="ptitle">${t('itemT')}</div><div class="tblwrap">${table(its,itemSort,'item',[
@@ -464,13 +464,13 @@ function renderStats(){
     ['own',t('colOwn'),r=>pct(r.own),t('tipOwn')],
     ['free',t('colFree'),r=>pct(r.free),t('tipFree')],
     ['vp',t('colVP'),r=>f1(r.vp)],
-    ['win',t('colWin'),r=>`${pct(r.win)}<span class="bar" style="width:${(r.win||0)*50}px"></span>`,t('tipWinI')]])}</div></div>`;
+    ['win',t('colWin'),r=>`${pct(r.win)}<span class="bar" style="width:${(r.win||0)*50}px"></span>`,t('tipWinI')]],r=>[`a/i${r.id}.webp`,itemCap(r.id)])}</div></div>`;
   el.innerHTML=h;
 }
-function table(rows,sort,kind,colsDef){
+function table(rows,sort,kind,colsDef,zoomOf){
   const sorted=rows.slice().sort((a,b)=>{ let x=a[sort.k], y=b[sort.k]; if(typeof x==='string') return sort.asc?x.localeCompare(y):y.localeCompare(x); x=isNaN(x)?-1:x; y=isNaN(y)?-1:y; return sort.asc?x-y:y-x; });
   return `<table class="tbl"><thead><tr>${colsDef.map(([k,l,,tip])=>`<th class="${['name','god','req'].includes(k)?'':'num'} ${sort.k===k?'on':''} ${sort.k===k&&sort.asc?'asc':''}" data-sort="${kind}:${k}" title="${esc(tip||'')}">${l}</th>`).join('')}</tr></thead>
-  <tbody>${sorted.map(r=>`<tr>${colsDef.map(([k,,f])=>`<td class="${['name','god','req'].includes(k)?'':'num'}">${f(r)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  <tbody>${sorted.map(r=>{ const z=zoomOf?zoomOf(r):null; return `<tr ${z?`class="zr" data-zoom="${z[0]}" data-cap="${esc(z[1])}"`:''}>${colsDef.map(([k,,f])=>`<td class="${['name','god','req'].includes(k)?'':'num'}">${f(r)}</td>`).join('')}</tr>`; }).join('')}</tbody></table>`;
 }
 $('#statsOut').addEventListener('click',e=>{
   const th=e.target.closest('[data-sort]'); if(!th) return;
