@@ -104,7 +104,7 @@ Pas d'étape de construction : les fichiers de la racine sont servis tels quels.
 - Héros : 1 PV par symbole au recto ; après 2 Épreuves de Troie réussies, le Héros se retourne (`flipped`) : 3 PV par symbole et Gloire 1/4/9/16/25 (`GLORY_TROY`).
 - Pouvoirs (actifs dès le recto, `power(p, héros)`) :
   - Ulysse (Ruse) : 1 fois par tour, 1 or → joker définitif sur une Épreuve de sa grille (`joker`, bouton en phase A ou C).
-  - Ajax (Endurance) : le symbole des Compétences qui portent une Gloire devient un joker.
+  - Ajax (Endurance) : le symbole des Compétences qui portent une Gloire devient un joker, uniquement pour réussir les Épreuves de leur ligne ou colonne (comme toute Compétence) ; les PV du Héros comptent le symbole imprimé.
   - Diomède (Chance) : 1 renouvellement de rangée gratuit par tour (n'est pas compté dans les Muses).
   - Achille (Force) : tous les Objets coûtent 2 or (`itemCost`).
   - Ménélas (Sagesse) : 1 or par Compétence prise hors des 2 colonnes de l'Épreuve, autant de fois que voulu.
