@@ -136,7 +136,7 @@ function muses(G,row){
   const p=P(G); if(G.phase!=='A') return false;
   const free=power(p,'luck') && !p.usedFree;
   if(!free && p.gold<1) return false;
-  if(free) p.usedFree=true; else { p.gold--; p.muses++; }
+  if(free){ p.usedFree=true; p.freeRows=p.freeRows||{trials:0,skills:0,items:0}; p.freeRows[row==='trials'?'trials':row==='items'?'items':'skills']++; } else { p.gold--; p.muses++; }
   if(row==='trials'){ G.trialRow.forEach(t=>{ if(t) G.trialDeck.push(t); }); G.trialRow=[]; for(let i=0;i<4;i++) G.trialRow.push(G.trialDeck.shift()||null); }
   else if(row==='skill0'||row==='skill1'){ const r=+row[5]; G.skillGrid[r].forEach(c=>{ if(c) G.skillDeck.push(c); }); for(let c=0;c<5;c++) G.skillGrid[r][c]=G.skillDeck.shift()||null; }
   else if(row==='items'){ G.itemRow.forEach(i=>{ if(i) G.itemPile.push(i); }); G.itemRow=[]; for(let i=0;i<4;i++) G.itemRow.push(G.itemPile.shift()||null); }
@@ -250,8 +250,8 @@ function joker(G,k){
   return true;
 }
 function aiJoker(G){
-  const p=P(G); let best=null, bv=2.5;
-  for(const k of jokerTargets(G)){ if(missingFor(p,k)!==1) continue; const v=trialValue(p,p.cells[k]); if(v>bv){ bv=v; best=k; } }
+  const p=P(G); let best=null, bv=1.5;
+  for(const k of jokerTargets(G)){ if(missingFor(p,k)!==1) continue; const v=trialValue(p,p.cells[k])+(p.turns>=6?2:0); if(v>bv){ bv=v; best=k; } }
   return best;
 }
 function pass(G){ if(G.phase!=='C') return false; endTurn(G); return true; }
@@ -270,15 +270,17 @@ function clone(G){
   return Object.assign({},G,{trialDeck:G.trialDeck.slice(), trialRow:G.trialRow.slice(), skillDeck:G.skillDeck.slice(),
     skillGrid:[G.skillGrid[0].slice(),G.skillGrid[1].slice()], itemPile:G.itemPile.slice(), itemRow:G.itemRow.slice(),
     pend:G.pend?{skills:G.pend.skills,cols:G.pend.cols.slice(),took:G.pend.took}:null, events:[], sel:null,
-    players:G.players.map(p=>Object.assign({},p,{cells:p.cells.slice(),done:p.done.slice(),edges:Object.assign({},p.edges),items:p.items.slice(),freeItems:p.freeItems.slice(),jokers:Object.assign({},p.jokers)}))});
+    players:G.players.map(p=>Object.assign({},p,{cells:p.cells.slice(),done:p.done.slice(),edges:Object.assign({},p.edges),items:p.items.slice(),freeItems:p.freeItems.slice(),jokers:Object.assign({},p.jokers),freeRows:p.freeRows?Object.assign({},p.freeRows):undefined}))});
 }
 function evalPlayer(G,pi){
   const p=G.players[pi], s=score(p);
   const free=freeCells(p).length;
   let v=s.total;
+  const uly=power(p,'cunning'); let jkLeft=Math.max(0,TURNS-p.turns-(p.usedJoker?1:0));
   for(let k=0;k<9;k++){
     if(k===4 || p.cells[k]==null || p.done[k]) continue;
-    const m=missingFor(p,k);
+    let m=missingFor(p,k);
+    if(uly){ if(m===1 && jkLeft>0 && p.gold>=1){ m=0.2; jkLeft--; } v+=0.25*Math.max(0,TR[p.cells[k]].r.length-3); }
     const slots=trialEdges(k).filter(e=>!p.edges[e]).length;
     const cap=Math.min(slots*1.6, free*1.1+0.6);
     if(m<=cap){
@@ -292,10 +294,29 @@ function evalPlayer(G,pi){
     const gl=Math.min(gloryOf(p),5), gain=2*heroSyms(p)+(GLORY_TROY[gl]-GLORY_TABLE[gl])+6;
     v+=gain*Math.min(1,prog/2)*0.6;
   }
+  if(power(p,'endurance')) Object.values(p.edges).forEach(c=>{ if(SKILLS[c.t].glory) v+=0.4; });
   // potentiel des bords encore libres pour le Héros/la Gloire
   v+=availableEdges(p).length*0.4;
   v+=p.gold*(free>0?0.7:0.05);
   return v;
+}
+// Valeur qu'une carte Compétence aurait pour les adversaires (contre-draft)
+function denyValue(G,pi,card){
+  const s=SKILLS[card.t]; let best=0;
+  G.players.forEach((q,qi)=>{ if(qi===pi) return;
+    for(let k=0;k<9;k++){
+      if(k===4||q.cells[k]==null||q.done[k]) continue;
+      if(!trialEdges(k).some(e=>!q.edges[e])) continue;
+      const m=missingFor(q,k); if(m<=0||m>2) continue;
+      const need={}; TR[q.cells[k]].r.forEach(x=>need[x]=(need[x]||0)+1);
+      const have=symCounts(q,k); let help=0;
+      s.syms.forEach(x=>{ if((need[x]||0)>have[x]){ help++; have[x]++; } });
+      if(power(q,'endurance')&&s.glory) help=Math.max(help,s.syms.length);
+      if(help) best=Math.max(best, trialValue(q,q.cells[k])*Math.min(1,help/m)*(m===help?1:0.5));
+    }
+    if(power(q,'endurance')&&s.glory) best=Math.max(best,3);
+  });
+  return best;
 }
 function aiBestSkill(G){
   const p=P(G), pi=G.cur;
@@ -304,9 +325,14 @@ function aiBestSkill(G){
     const g=clone(G); const q=g.players[pi];
     const card=g.skillGrid[r][c]; g.skillGrid[r][c]=null; q.edges[e]=card;
     if(SKILLS[card.t].gold) q.gold++;
-    if(G.phase==='skill' && !G.pend.cols.includes(c)) q.gold--;
+    const paid = G.phase==='skill' && !G.pend.cols.includes(c);
+    if(paid) q.gold--;
+    let emptyCols=0; for(let x=0;x<5;x++) if(!g.skillGrid[0][x]&&!g.skillGrid[1][x]) emptyCols++;
+    let before=0; for(let x=0;x<5;x++) if(!G.skillGrid[0][x]&&!G.skillGrid[1][x]) before++;
+    if(emptyCols>=2 && before<2) q.gold++;
     for(let k=0;k<9;k++) if(k!==4 && q.cells[k]!=null && !q.done[k] && isComplete(q,k)) q.done[k]=true;
-    const v=evalPlayer(g,pi)+Math.random()*0.01;
+    let v=evalPlayer(g,pi)+Math.random()*0.01;
+    if(power(p,'wisdom')) v+=(paid?0.2:0.1)*denyValue(G,pi,card)-(paid?1.2:0);
     if(v>bv){ bv=v; best={r,c,e}; }
   }
   return {move:best, v:bv};
@@ -333,7 +359,7 @@ function aiBestTrial(G){
 function aiBestItem(G,free){
   const p=P(G), pi=G.cur;
   const base=evalPlayer(G,pi);
-  let best=null, bv=free?-1e9:0.8;
+  let best=null, bv=free?-1e9:(power(p,'strength')?0.2:0.8);
   G.itemRow.forEach((id,slot)=>{ if(!id) return; if(!free && p.gold<itemCost(p,id)) return;
     const g=clone(G); acquire(g,slot,free);
     const q=g.players[pi];
@@ -344,14 +370,28 @@ function aiBestItem(G,free){
   return best;
 }
 function aiMuses(G){
-  const p=P(G);
-  if(power(p,'luck') && !p.usedFree && freeCells(p).length>=1){
-    const pi=G.cur, base=evalPlayer(G,pi), cur=aiBestTrial(G).v;
-    if(cur-base<4) return 'trials';
-    return null;
+  const p=P(G), pi=G.cur;
+  if(power(p,'luck') && !p.usedFree){
+    const base=aiBestTrial(G).v;
+    let best=null, bv=0.4;
+    for(const row of ['skill0','skill1','trials']){
+      let tot=0; const N=2;
+      for(let s=0;s<N;s++){
+        const g=clone(G); shuffle(g.skillDeck); shuffle(g.trialDeck);
+        muses(g,row); tot+=aiBestTrial(g).v;
+      }
+      let gain=tot/N-base;
+      if(row!=='trials'){
+        const r=+row[5]; let deny=0;
+        G.skillGrid[r].forEach(c=>{ if(c) deny=Math.max(deny,denyValue(G,pi,c)); });
+        gain+=0.3*deny+0.5;
+      } else gain-=0.8;
+      if(gain>bv){ bv=gain; best=row; }
+    }
+    return best;
   }
   if(p.gold<3 || freeCells(p).length<2) return null;
-  const pi=G.cur, base=evalPlayer(G,pi);
+  const base=evalPlayer(G,pi);
   const cur=aiBestTrial(G).v;
   if(cur-base<2.5) return 'trials';
   return null;
@@ -419,7 +459,7 @@ function mergeAgg(A,B){
   const m=(a,b)=>{ for(const k in b){ const v=b[k]; if(typeof v==='number') a[k]=(a[k]||0)+v; else if(v&&typeof v==='object'){ if(!a[k]||typeof a[k]!=='object') a[k]={}; m(a[k],v); } } return a; };
   return m(A,B);
 }
-const API={TROY_TRIALS,GLORY_TROY,power,itemCost,troyDone,canJoker,jokerTargets,joker,aiJoker,mergeAgg,playAI,summarize,simulate,newAgg,addAgg,TRIALS,TR,SYM,GODS,GOD_KEYS,SKILLS,ITEMS,HEROES,EDGES,TURNS,GLORY_TABLE,
+const API={denyValue,TROY_TRIALS,GLORY_TROY,power,itemCost,troyDone,canJoker,jokerTargets,joker,aiJoker,mergeAgg,playAI,summarize,simulate,newAgg,addAgg,TRIALS,TR,SYM,GODS,GOD_KEYS,SKILLS,ITEMS,HEROES,EDGES,TURNS,GLORY_TABLE,
   newGame,P,freeCells,availableEdges,symCounts,missingFor,isComplete,godCount,zeusSets,gloryOf,heroSyms,trialValue,itemValue,score,
   muses,eligibleSkills,placeTrial,takeSkill,zeusPick,buy,pass,ranking,edgeCell,trialEdges,cellEdges,
   aiBestSkill,aiBestTrial,aiBestItem,aiMuses,evalPlayer};

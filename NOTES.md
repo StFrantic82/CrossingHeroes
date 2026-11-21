@@ -109,7 +109,15 @@ Pas d'étape de construction : les fichiers de la racine sont servis tels quels.
   - Achille (Force) : tous les Objets coûtent 2 or (`itemCost`).
   - Ménélas (Sagesse) : 1 or par Compétence prise hors des 2 colonnes de l'Épreuve, autant de fois que voulu.
 - Visuels : les 24 faces des Épreuves de Troie ont été retravaillées (palette réduite en aplats, crème/or du jeu, grain) par `src/troy_style.py` ; images `a/t101a…t112b`, masques dorés `a/m101…m112`, Héros `a/ht_<héros>_1|2`.
-- Équilibrage (600 parties IA à 3 joueurs, extension) : Ajax 54 % de victoires (96 PV), Achille 39 % (92), Diomède 29 % (85), Ulysse 23 % (82), Ménélas 23 % (80) ; attendu 33 %. Ajax paraît trop fort, Ulysse et Ménélas un peu faibles (l'IA les joue peut-être moins bien qu'un humain).
+- IA de l'extension (réglages demandés par l'auteur) :
+  - Ajax : bonus par Compétence avec Gloire posée (≈ 3,8 par partie contre 2 pour les autres Héros).
+  - Diomède : simule chaque renouvellement gratuit (2 tirages), préfère les rangées de Compétences (≈ 6,5 par partie) pour trouver la bonne carte ou priver un adversaire (`denyValue`, Ajax visé par les cartes Gloire) ; les Épreuves plus rarement (≈ 1,3).
+  - Ménélas : paie 1 or seulement si la carte lui rapporte nettement plus (marge 1,2 PV), avec un bonus de contre-draft et le calcul de l'or du remplissage du présentoir (≈ 2,8 achats par partie).
+  - Achille : achète un Objet plus facilement (seuil abaissé), ≈ 3,7 Objets par partie.
+  - Ulysse : préfère les Épreuves à 4-5 symboles et compte sur un joker par tour restant pour les Épreuves auxquelles il ne manque qu'un symbole (≈ 3,4 jokers par partie). Joker aussi utilisé par l'IA dans l'app.
+  - Toutes les IA comptent désormais l'or gagné quand leur prise vide une 2e colonne du présentoir.
+- Équilibrage après ces réglages (400 parties à 3) : Ajax 63 %, Achille 36 %, Diomède 32 %, Ménélas 17 %, Ulysse 16 %.
+- Équilibrage initial (600 parties IA à 3 joueurs, extension) : Ajax 54 % de victoires (96 PV), Achille 39 % (92), Diomède 29 % (85), Ulysse 23 % (82), Ménélas 23 % (80) ; attendu 33 %. Ajax paraît trop fort, Ulysse et Ménélas un peu faibles (l'IA les joue peut-être moins bien qu'un humain).
 
 ## 9. Pistes
 

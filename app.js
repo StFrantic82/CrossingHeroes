@@ -340,6 +340,7 @@ async function scheduleAI(){
       G.sel={r:mv.r,c:mv.c}; render(); await sleep(aiSpeed*0.8);
       G.sel=null; C.takeSkill(G,mv.r,mv.c,mv.e);
     } else if(ph==='zeus'){ C.zeusPick(G,C.aiBestItem(G,true)); }
+    else if(ph==='C'&&C.aiJoker(G)!=null){ C.joker(G,C.aiJoker(G)); }
     else if(ph==='C'){ const b=C.aiBestItem(G,false); if(b!=null) C.buy(G,b); else C.pass(G); }
     if(G!==game) break;
     render(); await sleep(aiSpeed);
@@ -418,7 +419,7 @@ $('#runSim').onclick=()=>{
   const done=A=>{ statsAgg=comb(A); saveAgg(); $('#runSim').disabled=false; $('#runSim').innerHTML=t('run'); renderStats(); };
   try{
     if(simWorker) simWorker.terminate();
-    simWorker=new Worker('sim-worker.js?v=7');
+    simWorker=new Worker('sim-worker.js?v=9');
     simWorker.onmessage=e=>{ $('#prog').style.width=(e.data.progress*100).toFixed(1)+'%'; if(e.data.agg&&!e.data.done){ statsAgg=comb(e.data.agg); renderStats(); } if(e.data.done) done(e.data.agg); };
     simWorker.onerror=()=>{ simWorker=null; runMain(games,players,done); };
     simWorker.postMessage({games,players,troy:$('#simTroy').value==='mix'?'mix':$('#simTroy').value==='1'});
