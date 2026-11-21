@@ -1,0 +1,28 @@
+# S=Force(casque rouge) C=Ruse(compas jaune) E=Endurance(coupe verte) W=Sagesse(parchemin bleu) L=Chance(couronne violette) G=Gloire
+# chaque carte x3 (60 cartes)
+1 S S
+2 C C
+3 E E
+4 W W
+5 L L
+6 S E
+7 C S
+8 S W
+9 S L
+10 C L
+11 C W
+12 C E
+13 L W
+14 L E
+15 E W
+16 S G
+17 C G
+18 W G
+19 E G
+20 L G
+# chaque carte x2 (10 cartes) — 1 symbole + 1 Or
+21 S $
+22 C $
+23 W $
+24 E $
+25 L $

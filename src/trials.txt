@@ -1,0 +1,50 @@
+# id | nom FR | requis | dieu | bonus (g=or, s=compétence) | score
+# Dieux: POS=Poséidon ATH=Athéna APO=Apollon HER=Hermès ; score: N | Nx<GOD> | Nxglory | N/2N@item
+1 | Le Dragon d'Arès | S C C | POS | s1 | 3xPOS
+2 | Hadès et Perséphone | W E C C | ATH | s2 | 10
+3 | Orphée et Eurydice | W L L L | POS | g1 | 15
+4 | S'échapper du Labyrinthe | E L C | POS | g1 s2 | 3
+5 | L'Oracle de Delphes | W W | POS | s1 | 2xPOS
+6 | L'Énigme du Sphinx | W W C | HER | s1 | 4xAPO
+7 | Fuir les Grées | W W C C | APO | g1 s1 | 6/12@casque
+8 | Méduse la Gorgone | S C | APO | - | 9
+9 | Traverser le désert libyen | E E L | APO | g2 s1 | 4
+10 | Délivrer Andromède | W L E C | POS | s2 | 3xglory
+11 | Polydecte | L L C C | APO | g2 s1 | 8
+12 | Dompter Pégase | W W L | POS | s1 | 4xHER
+13 | La Chimère | S S E | POS | g1 s2 | 3/6@lance
+14 | Le Lion de Némée | S S S | APO | g1 s1 | 5/10@massue
+15 | L'Hydre de Lerne | S S C C | HER | s2 | 3xglory
+16 | La Biche de Cérynie | W W E E | APO | g1 s2 | 7
+17 | Le Sanglier d'Érymanthe | E E W | HER | g2 s1 | 5
+18 | Les Écuries d'Augias | C C E E | HER | s2 | 8
+19 | Les Oiseaux du lac Stymphale | C C L | HER | g1 s2 | 4/8@massue
+20 | Le Taureau de Crète | S S | HER | s1 | 2xHER
+21 | Les Juments de Diomède | S S L | APO | s2 | 6
+22 | La Ceinture d'Hippolyte | S C E | ATH | g1 s1 | 6/12@massue
+23 | Les Bœufs de Géryon | S S E E | HER | s2 | 3xglory
+24 | Libérer Prométhée | S E E | POS | g1 s2 | 3/6@massue
+25 | Le Jardin des Hespérides | E W W | HER | s1 | 4xATH
+26 | Cerbère | S C E W L | POS | - | 22
+27 | Antée | S L L | ATH | s1 | 11
+28 | Les Centaures | S S C | ATH | s2 | 7
+29 | Les Brigands de Sciron | L S | ATH | g2 | 6
+30 | Construire l'Argo | E E E | APO | s1 | 6/12@chaudron
+31 | Le Géant Talos | S W W | HER | s1 | 4xPOS
+32 | Les Harpies | E L L L | ATH | s1 | 13
+33 | Les Guerriers non-morts | S S W W | HER | s2 | 3xglory
+34 | La Toison d'or | S C E W W | POS | s1 | 16
+35 | Des Cadeaux empoisonnés | L L L | ATH | g1 s1 | 5/10@chaudron
+36 | La Pomme de la Discorde | S S L L | POS | s2 | 3xglory
+37 | Les Amazones | E L L | ATH | g2 | 4/8@epee
+38 | Le Fil d'Ariane | C W L | HER | s1 | 3xHER
+39 | Le Labyrinthe du Minotaure | S C E W | ATH | - | 18
+40 | Polyphème | C C | APO | s1 | 2xAPO
+41 | Les Sirènes | W E | APO | s1 | 5
+42 | Calypso | L L | HER | g1 s1 | 4/8@arc
+43 | Circé | C C W | ATH | s1 | 3xATH
+44 | Les Lotophages | C C C | APO | g1 s1 | 6/12@arc
+45 | Charybde et Scylla | W W W | ATH | g1 s1 | 5/10@arc
+46 | Le Concours de tir à l'arc | S S W | APO | s1 | 3xAPO
+47 | Les Tempêtes de Poséidon | E E L L L | POS | g1 | 20
+48 | Le Mendiant à Ithaque | E E | ATH | s1 | 2xATH
