@@ -2,7 +2,8 @@
 const C = window.CH;
 const COLORS=['#e2a12b','#4fb3c4','#c35a9a','#7fb24a','#d86a4a'];
 const $=s=>document.querySelector(s);
-let G=null, view=0, logLines=[], busy=false, aiSpeed=650;
+let G=null, view=0, logEv=[], busy=false, aiSpeed=650;
+const MPON=()=>window.MP&&MP.on;
 let L='fr';
 try{ const l=localStorage.getItem('ch_lang'); if(I18N[l]) L=l; else if(/^it/i.test(navigator.language)) L='it'; else if(!/^fr/i.test(navigator.language)) L='en'; }catch(e){}
 
@@ -40,7 +41,7 @@ function applyLang(){
   document.documentElement.lang=L;
   document.querySelectorAll('[data-t]').forEach(el=>{ el.innerHTML=t(el.dataset.t); });
   document.querySelectorAll('.langs button').forEach(b=>b.classList.toggle('on',b.dataset.lang===L));
-  renderSetup(); if(statsAgg) renderStats(); renderHistory();
+  renderSetup(); if(statsAgg) renderStats(); renderHistory(); if(window.mpRender&&!$('#mpPanel').classList.contains('hidden')) mpRender(); if(G) render();
 }
 document.querySelector('.langs').addEventListener('click',e=>{ const b=e.target.closest('[data-lang]'); if(!b) return; L=b.dataset.lang; try{localStorage.setItem('ch_lang',L);}catch(x){} applyLang(); });
 function showTab(name){
@@ -51,8 +52,8 @@ function showTab(name){
 document.querySelector('.tabs').addEventListener('click',e=>{ const b=e.target.closest('[data-tab]'); if(b) showTab(b.dataset.tab); });
 
 /* ---------- Accueil ---------- */
-let setup=[{name:'Moi',ai:false},{name:'Ariane',ai:true},{name:'Jason',ai:true}];
-try{ const s=JSON.parse(localStorage.getItem('ch_setup')); if(Array.isArray(s)&&s.length>=2) setup=s; }catch(e){}
+let setup=[{name:'Moi',ai:false},{name:'Ariane',ai:true}];
+try{ const s=JSON.parse(localStorage.getItem('ch_setup2')); if(Array.isArray(s)&&s.length>=2) setup=s; }catch(e){}
 function renderSetup(){
   $('#plist').innerHTML=setup.map((p,i)=>`
     <div class="prow">
@@ -73,14 +74,17 @@ $('#plist').addEventListener('click',e=>{
 $('#addp').onclick=()=>{ const used=setup.map(p=>p.name); setup.push({name:AI_NAMES.find(n=>!used.includes(n))||'Héros',ai:true}); renderSetup(); };
 $('#start').onclick=()=>{
   setup.forEach((p,i)=>{ p.name=(p.name||'').trim()||`${t('human')} ${i+1}`; });
-  try{ localStorage.setItem('ch_setup',JSON.stringify(setup)); }catch(e){}
-  G=C.newGame({players:setup}); logLines=[]; doneAt.clear(); flushEvents();
+  try{ localStorage.setItem('ch_setup2',JSON.stringify(setup)); }catch(e){}
+  startGame(C.newGame({players:setup}));
+};
+function startGame(g){
+  G=g; logEv=[]; doneAt.clear(); flushEvents();
   view=G.cur;
   document.querySelectorAll('.pre').forEach(el=>el.classList.add('hidden'));
   $('#game').classList.remove('hidden');
-  render(); scheduleAI();
-};
-function goHome(){ G=null; busy=false; $('#game').classList.add('hidden'); document.querySelectorAll('.pre').forEach(el=>el.classList.remove('hidden')); showTab('play'); renderSetup(); renderHistory(); }
+  window.scrollTo(0,0); render(); scheduleAI();
+}
+function goHome(){ if(MPON()&&window.mpLeave){ mpLeave(); return; } G=null; busy=false; $('#game').classList.add('hidden'); document.querySelectorAll('.pre').forEach(el=>el.classList.remove('hidden')); showTab('play'); renderSetup(); renderHistory(); }
 $('#homeHelp').onclick=showHelp;
 $('#helpBtn').onclick=showHelp;
 $('#quitBtn').onclick=()=>{ if(G&&G.phase==='end'){ goHome(); return; } showModal(`<h2>${t('quitQ')}</h2><p>${t('quitTxt')}</p><div class="homebtns" style="margin-top:16px"><button class="btn" data-quit>${t('backHome')}</button><button class="btn ghost" data-close>${t('continue')}</button></div>`); };
@@ -127,13 +131,14 @@ function fmtEvent(e){
 }
 function flushEvents(){
   if(!G) return;
-  while(G.events.length){ const e=G.events.shift(); logLines.unshift(fmtEvent(e)); if(e.k==='end') saveHistory(); }
-  logLines=logLines.slice(0,60);
+  while(G.events.length){ const e=G.events.shift(); logEv.unshift(e); }
+  logEv=logEv.slice(0,60);
+  if(G.phase==='end') saveHistory();
 }
 
 /* ---------- Rendu ---------- */
 function me(){ return C.P(G); }
-function humanTurn(){ return G && G.phase!=='end' && !me().ai && !busy; }
+function humanTurn(){ return G && G.phase!=='end' && !me().ai && !busy && (!MPON()||G.cur===MP.seat); }
 function trialImg(tid,done){ return `a/t${tid}${done?'b':'a'}.webp`; }
 function trialCap(tid){
   const tr=C.TR[tid];
@@ -206,8 +211,9 @@ function render(){
   });
   it+=`<div class="icard" style="opacity:${G.itemPile.length?1:.2}"><img src="a/i_back.webp" alt=""></div>`;
   $('#items').innerHTML=it;
-  $('#log').innerHTML=logLines.slice(0,40).map(l=>`<div>${l}</div>`).join('');
+  $('#log').innerHTML=logEv.slice(0,40).map(e=>`<div>${fmtEvent(e)}</div>`).join('');
   renderBoard();
+  if(window.mpAfterRender) mpAfterRender();
 }
 
 const doneAt=new Map();
@@ -261,25 +267,31 @@ document.addEventListener('click',e=>{
   if(el.dataset.close!=null){ hideModal(); return; }
   if(el.dataset.quit!=null){ hideModal(); goHome(); return; }
   if(el.dataset.act==='scores'){ showScores(); return; }
-  if(el.dataset.act==='again'){ hideModal(); goHome(); return; }
+  if(el.dataset.act==='again'){ hideModal(); if(MPON()&&MP.host&&window.mpBackToLobby){ mpBackToLobby(); return; } goHome(); return; }
   if(el.dataset.act==='clearHist'){ try{localStorage.removeItem('ch_hist');}catch(x){} renderHistory(); return; }
   if(el.closest('#stats')) return;
   if(el.dataset.view!=null){ view=+el.dataset.view; render(); return; }
   if(!G||!humanTurn()) return;
   const ph=G.phase;
   if(el.dataset.act==='unsel'){ G.sel=null; render(); return; }
-  if(el.dataset.act==='pass'){ C.pass(G); after(); return; }
-  if(el.dataset.muse&&ph==='A'){ C.muses(G,el.dataset.muse); render(); return; }
+  if(el.dataset.act==='pass'){ act('pass'); return; }
+  if(el.dataset.muse&&ph==='A'){ act('muses',el.dataset.muse); return; }
   if(el.dataset.trial!=null&&ph==='A'){ const i=+el.dataset.trial; G.sel=G.sel===i?null:i; view=G.cur; render(); return; }
-  if(el.dataset.cell!=null&&ph==='A'&&G.sel!=null){ C.placeTrial(G,G.sel,+el.dataset.cell); after(); return; }
+  if(el.dataset.cell!=null&&ph==='A'&&G.sel!=null){ act('placeTrial',G.sel,+el.dataset.cell); return; }
   if(el.dataset.skill!=null&&(ph==='skill'||ph==='torch')){
     const [r,c]=el.dataset.skill.split(',').map(Number);
     if(!C.eligibleSkills(G).some(([a,b])=>a===r&&b===c)) return;
     G.sel=(G.sel&&G.sel.r===r&&G.sel.c===c)?null:{r,c}; view=G.cur; render(); return;
   }
-  if(el.dataset.edge!=null&&(ph==='skill'||ph==='torch')&&G.sel&&G.sel.r!=null){ const {r,c}=G.sel; G.sel=null; C.takeSkill(G,r,c,el.dataset.edge); after(); return; }
-  if(el.dataset.item!=null){ const i=+el.dataset.item; if(ph==='zeus'){ C.zeusPick(G,i); after(); return; } if(ph==='C'){ C.buy(G,i); after(); return; } }
+  if(el.dataset.edge!=null&&(ph==='skill'||ph==='torch')&&G.sel&&G.sel.r!=null){ const {r,c}=G.sel; G.sel=null; act('takeSkill',r,c,el.dataset.edge); return; }
+  if(el.dataset.item!=null){ const i=+el.dataset.item; if(ph==='zeus'){ act('zeusPick',i); return; } if(ph==='C'){ act('buy',i); return; } }
 });
+const ACTS=['muses','placeTrial','takeSkill','zeusPick','buy','pass'];
+function act(fn,...args){
+  if(!ACTS.includes(fn)) return;
+  if(MPON()&&!MP.host){ G.sel=null; mpSend({t:'act',fn,args}); render(); return; }
+  C[fn](G,...args); if(fn==='muses'){ render(); return; } after();
+}
 function after(){
   if(G.phase==='A'||G.phase==='end') view=G.cur;
   render();
@@ -290,6 +302,7 @@ function after(){
 /* ---------- IA ---------- */
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function scheduleAI(){
+  if(MPON()&&!MP.host) return;
   if(!G||busy||G.phase==='end'||!me().ai) return;
   busy=true; view=G.cur; render();
   const game=G;

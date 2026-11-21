@@ -2,7 +2,7 @@ const I18N={
 fr:{
  tagline:"Affrontez les épreuves des dieux. 2 à 5 héros, 8 tours chacun.",
  navPlay:"Jouer", navStats:"Statistiques", human:"Humain", ai:"IA", addHero:"+ Ajouter un héros", remove:"Retirer",
- start:"Commencer la partie", rulesAid:"Règles et aide de jeu",
+ start:"Commencer la partie", soloGame:"Partie solo", onlineGame:"Partie en ligne", rulesAid:"Règles et aide de jeu",
  homeFine:"Partie sur un seul écran : chaque joueur humain joue à son tour, les héros IA jouent seuls. Les Héros sont distribués au hasard et le premier joueur est tiré au sort.",
  help:"Aide", home:"Accueil", trials:"Épreuves", items:"Objets", chronicle:"Chronique", muses:"Muses", musesCost:"↻ Muses · 1", 
  deckInfo:(a,b)=>`Pioche d'Épreuves : ${a} · Pioche de Compétences : ${b}`,
@@ -49,7 +49,7 @@ fr:{
 en:{
  tagline:"Face the trials of the gods. 2 to 5 heroes, 8 turns each.",
  navPlay:"Play", navStats:"Statistics", human:"Human", ai:"AI", addHero:"+ Add a hero", remove:"Remove",
- start:"Start the game", rulesAid:"Rules & player aid",
+ start:"Start the game", soloGame:"Solo game", onlineGame:"Online game", rulesAid:"Rules & player aid",
  homeFine:"Single-screen play: each human player takes their turn, AI heroes play on their own. Heroes are dealt at random and the first player is drawn at random.",
  help:"Help", home:"Home", trials:"Trials", items:"Items", chronicle:"Chronicle", muses:"Muses", musesCost:"↻ Muses · 1",
  deckInfo:(a,b)=>`Trial deck: ${a} · Skill deck: ${b}`,
@@ -95,7 +95,7 @@ en:{
 it:{
  tagline:"Affronta le prove degli dèi. Da 2 a 5 eroi, 8 turni ciascuno.",
  navPlay:"Gioca", navStats:"Statistiche", human:"Umano", ai:"IA", addHero:"+ Aggiungi un eroe", remove:"Rimuovi",
- start:"Inizia la partita", rulesAid:"Regole e aiuto al gioco",
+ start:"Inizia la partita", soloGame:"Partita in solitario", onlineGame:"Partita online", rulesAid:"Regole e aiuto al gioco",
  homeFine:"Partita su un solo schermo: ogni giocatore umano gioca al suo turno, gli eroi IA giocano da soli. Gli Eroi sono assegnati a caso e il primo giocatore è sorteggiato.",
  help:"Aiuto", home:"Home", trials:"Prove", items:"Oggetti", chronicle:"Cronaca", muses:"Muse", musesCost:"↻ Muse · 1",
  deckInfo:(a,b)=>`Mazzo Prove: ${a} · Mazzo Abilità: ${b}`,

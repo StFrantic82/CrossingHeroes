@@ -318,6 +318,29 @@ table.sc tr.tot{background:#16110e14}
   .hb{grid-template-columns:90px 1fr 56px}
   .instr{font-size:16px}
 }
+
+/* ===== partie en ligne ===== */
+.homebtns .btn{flex:1;min-width:150px}
+.mptxt{color:#22150c;font-weight:500;line-height:1.45}
+.mperr{color:#7a0f0f;font-weight:800}
+.mplink{color:var(--ink);font-weight:800;word-break:break-all}
+.mplab{display:flex;flex-direction:column;gap:4px;font-weight:800;font-size:13px;letter-spacing:.06em;text-transform:uppercase;margin:12px 0}
+.mplab input,.mpcode{background:var(--ink);border:2px solid var(--ink);color:var(--cream);padding:10px 12px;border-radius:3px;font:inherit;font-size:16px;text-transform:none;letter-spacing:0}
+.mpcode{width:96px;font-family:monospace;font-weight:800;font-size:18px;text-transform:uppercase;letter-spacing:.12em}
+.mpcards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mpcard{background:#16110e1a;border:2px solid #16110e55;border-radius:3px;padding:12px}
+.mpcard p{margin:6px 0 10px;font-size:14px;color:#22150c}
+.mpcodebox{text-align:center;background:var(--ink);color:var(--cream);border-radius:3px;padding:12px}
+.mpcodebox span{display:block;font-size:12.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.mpcodebox b{display:block;font-family:'Bungee',monospace;font-size:40px;letter-spacing:.2em;color:var(--sand);margin:4px 0 10px}
+.mpcodebox .btn.ghost{border-color:var(--sand);color:var(--sand)}
+.mprow{display:flex;align-items:center;gap:9px;padding:7px 10px;margin:5px 0;background:#16110e1a;border-radius:3px;border:2px solid transparent}
+.mprow.me{border-color:var(--ink)}
+.mprow .dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--ink);flex:none}
+.mprow small{color:#2a1a10}
+#mpbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;background:var(--ink);border:2px solid var(--gold);border-radius:4px;padding:8px 12px;margin-bottom:10px;color:var(--cream)}
+#mpbar .mperr{color:#ff9b8a}
+@media (max-width:760px){ .mpcards{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
@@ -348,13 +371,16 @@ table.sc tr.tot{background:#16110e14}
   <div class="setup">
     <h1 class="disp">Crossing Heroes</h1>
     <p class="sub" data-t="tagline"></p>
+    <div id="solo">
     <div id="plist"></div>
     <button class="addp" id="addp" data-t="addHero"></button>
     <div class="homebtns">
-      <button class="btn" id="start" data-t="start"></button>
-      <button class="btn ghost" id="homeHelp" data-t="rulesAid"></button>
+      <button class="btn" id="start" data-t="soloGame"></button>
+      <button class="btn" id="online" data-t="onlineGame"></button>
     </div>
-    <p class="fine" data-t="homeFine"></p>
+    <p style="margin:14px 0 0"><button class="btn ghost sm" id="homeHelp" data-t="rulesAid"></button></p>
+    </div>
+    <div id="mpPanel" class="hidden"></div>
   </div>
 </section>
 
@@ -420,5 +446,6 @@ table.sc tr.tot{background:#16110e14}
 <script src="engine.js"></script>
 <script src="i18n.js"></script>
 <script src="app.js"></script>
+<script src="mp.js"></script>
 </body>
 </html>

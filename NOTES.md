@@ -45,6 +45,7 @@ Pas d'étape de construction : les fichiers de la racine sont servis tels quels.
 | `i18n.js` | Textes FR/EN/IT (`I18N`) et noms traduits des cartes (`NAMES`). |
 | `app.js` | Interface : accueil, rendu du plateau, clics, tours de l'IA, loupe, modales, historique, onglet Statistiques. |
 | `sim-worker.js` | Simulation en arrière-plan pour l'onglet Statistiques. |
+| `mp.js` | Partie en ligne : salon, réseau pair-à-pair, diffusion de l'état (voir section 6). |
 | `a/` | Images en WebP : `t{n}a`/`t{n}b` (Épreuve recto/verso), `s{n}` (Compétences), `i{n}` (Objets), `h_*` (Héros), `ic_*` (icônes de Compétence), `g_*` (dieux), `m{n}.png` (masques des zones dorées), `cover*`, `aid_*` (aide de jeu), `laurel.png`, `glory.png`. |
 | `src/trials.txt` | Relevé des 48 Épreuves : nom, requis, dieu, bonus, score. |
 | `src/skills.txt` | Relevé des 70 Compétences (25 modèles). |
@@ -78,8 +79,18 @@ Pas d'étape de construction : les fichiers de la racine sont servis tels quels.
 
 ---
 
-## 6. Pistes
+## 6. Partie en ligne (`mp.js`, 21 novembre)
 
-- Multijoueur en ligne, chaque joueur sur son appareil.
+- Sur l'accueil, deux boutons côte à côte : « Partie solo » (joueurs de la liste, humains et IA sur le même écran ; par défaut toi contre 1 IA) et « Partie en ligne ».
+- Un joueur crée un salon (code de 4 lettres, lien `#join-CODE`). De 2 à 5 joueurs ; l'hôte peut ajouter ou retirer des IA, puis lance la partie.
+- Réseau pair-à-pair avec PeerJS 1.5.4 (unpkg, sinon jsdelivr), identifiant `crossingheroes-mp-CODE`, comme pour Ragnarok. Fonctionne sur GitHub Pages (et localhost) ; l'artefact Claude bloque WebRTC et affiche le lien GitHub Pages.
+- L'hôte fait tourner la seule vraie partie `G` et les IA. Les autres envoient leurs actions (`act(fn, ...args)` avec `fn` parmi `muses`, `placeTrial`, `takeSkill`, `zeusPick`, `buy`, `pass`) ; l'hôte vérifie que c'est bien leur tour et diffuse l'état (pioches réduites à leur taille) et la chronique (événements bruts, mis en forme dans la langue de chacun).
+- La sélection en cours (carte choisie avant de la poser) reste locale à chaque joueur. Reconnexion avec le même onglet (jeton en sessionStorage).
+- Test local sans Internet : ajouter `?mptest=1` à l'URL (BroadcastChannel entre onglets du même navigateur).
+
+---
+
+## 7. Pistes
+
 - IA qui utilise mieux les Muses.
 - Agrandissement des cartes au toucher sur mobile.
