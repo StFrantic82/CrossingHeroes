@@ -119,7 +119,15 @@ Pas d'étape de construction : les fichiers de la racine sont servis tels quels.
 - Équilibrage après ces réglages (400 parties à 3) : Ajax 63 %, Achille 36 %, Diomède 32 %, Ménélas 17 %, Ulysse 16 %.
 - Équilibrage initial (600 parties IA à 3 joueurs, extension) : Ajax 54 % de victoires (96 PV), Achille 39 % (92), Diomède 29 % (85), Ulysse 23 % (82), Ménélas 23 % (80) ; attendu 33 %. Ajax paraît trop fort, Ulysse et Ménélas un peu faibles (l'IA les joue peut-être moins bien qu'un humain).
 
-## 9. Pistes
+## 9. IA : contre des Épreuves fortes chez l'adversaire (23 novembre)
+
+- Constat : les Épreuves « × Gloire » sont les plus liées à la victoire (+24 pt de Δ victoire), car elles s'ajoutent à la Gloire déjà accumulée (Gloire ≥ 5 + Épreuve × Gloire réussie : +32 pt ; Gloire ≥ 5 sans : +7 pt).
+- `trialThreat(G, pi, tid)` estime la valeur d'une Épreuve pour les adversaires (Gloire actuelle et à venir pour les « × Gloire », facilité selon le nombre de symboles ; adversaire suivant pondéré 1, les autres 0,6).
+- Contre-draft : en choisissant son Épreuve, l'IA ajoute 0,4 × la menace qu'elle retire de la rangée (`DENY_W`).
+- Muses : si une Épreuve de la rangée vaut ≥ 6 pour un adversaire et que l'IA a ≥ 2 or, elle renouvelle la rangée d'Épreuves (1 fois par tour) ; Diomède en tient compte dans son renouvellement gratuit.
+- Effet (600 parties, jeu de base) : Δ victoire des Épreuves × Gloire 23,7 → 18,8 pt ; Muses ≈ 0,5 par joueur et par partie (0 avant) ; score moyen inchangé (≈ 85).
+
+## 10. Pistes
 
 - IA qui utilise mieux les Muses.
 - Agrandissement des cartes au toucher sur mobile.

@@ -1,4 +1,4 @@
-importScripts('engine.js?v=10');
+importScripts('engine.js?v=11');
 const C=self.CH;
 onmessage=e=>{
   const {games, players, troy}=e.data; const A=C.newAgg();

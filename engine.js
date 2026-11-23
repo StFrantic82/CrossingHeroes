@@ -259,7 +259,7 @@ function endTurn(G){
   const p=P(G); p.turns++; G.bought=false; G.pend=null; G.sel=null;
   if(G.players.every(q=>q.turns>=TURNS)){ G.phase='end'; ev(G,'end'); return; }
   G.cur=(G.cur+1)%G.players.length; G.phase='A';
-  const q=P(G); q.usedJoker=false; q.usedFree=false;
+  const q=P(G); q.usedJoker=false; q.usedFree=false; q.musedDeny=false;
 }
 function ranking(G){
   return G.players.map((p,i)=>({i, p, s:score(p)})).sort((a,b)=> b.s.total-a.s.total || b.p.gold-a.p.gold);
@@ -344,13 +344,34 @@ function simulateRest(g){
   }
   if(g.phase==='zeus'){ const z=aiBestItem(g,true); if(z!=null) zeusPick(g,z); }
 }
+// Valeur qu'une Épreuve aurait pour les adversaires (surtout les Épreuves « × Gloire »)
+function trialThreat(G,pi,tid){
+  const t=TR[tid], n=G.players.length; let best=0;
+  for(let d=1;d<n;d++){
+    const qi=(pi+d)%n, q=G.players[qi];
+    if(q.turns>=TURNS || !freeCells(q).length) continue;
+    let v=trialValue(q,tid);
+    if(t.s.t==='glory') v=t.s.v*(gloryOf(q)+Math.max(0,TURNS-q.turns-1)*0.35);
+    // facilité pour cet adversaire : symboles déjà présents sur ses bords libres
+    const reach=t.r.length<=3?0.75:t.r.length===4?0.55:0.4;
+    v*=reach*(d===1?1:0.6);
+    if(v>best) best=v;
+  }
+  return best;
+}
+const DENY_W=0.4;
 function aiBestTrial(G){
   const p=P(G), pi=G.cur;
   let best=null, bv=-1e9;
+  const threat=G.trialRow.map(tid=>tid?trialThreat(G,pi,tid):0);
+  const maxT=Math.max(0,...threat);
   G.trialRow.forEach((tid,slot)=>{ if(!tid) return;
+    // prendre une Épreuve la retire aux autres : on évalue la menace qui reste dans la rangée
+    const rest=Math.max(0,...threat.filter((x,i)=>i!==slot));
+    const deny=DENY_W*(maxT-rest);
     freeCells(p).forEach(cell=>{
       const g=clone(G); placeTrial(g,slot,cell); simulateRest(g);
-      const v=evalPlayer(g,pi)+Math.random()*0.01;
+      const v=evalPlayer(g,pi)+deny+Math.random()*0.01;
       if(v>bv){ bv=v; best={slot,cell}; }
     });
   });
@@ -389,11 +410,15 @@ function aiMuses(G){
         const r=+row[5]; let deny=0;
         G.skillGrid[r].forEach(c=>{ if(c) deny=Math.max(deny,denyValue(G,pi,c)); });
         gain+=0.3*deny+0.5;
-      } else if(row==='trials') gain-=0.8;
+      } else if(row==='trials'){ gain-=0.8; gain+=0.3*Math.max(0,...G.trialRow.map(t=>t?trialThreat(G,pi,t):0)); }
       if(gain>bv){ bv=gain; best=row; }
     }
     return best;
   }
+  if(p.gold<1 || !freeCells(p).length) return null;
+  // défausser par les Muses une Épreuve trop forte pour l'adversaire suivant
+  const thr=Math.max(0,...G.trialRow.map(t=>t?trialThreat(G,pi,t):0));
+  if(thr>=6 && p.gold>=2 && !p.musedDeny){ p.musedDeny=true; return 'trials'; }
   if(p.gold<3 || freeCells(p).length<2) return null;
   const base=evalPlayer(G,pi);
   const cur=aiBestTrial(G).v;
@@ -463,7 +488,7 @@ function mergeAgg(A,B){
   const m=(a,b)=>{ for(const k in b){ const v=b[k]; if(typeof v==='number') a[k]=(a[k]||0)+v; else if(v&&typeof v==='object'){ if(!a[k]||typeof a[k]!=='object') a[k]={}; m(a[k],v); } } return a; };
   return m(A,B);
 }
-const API={denyValue,TROY_TRIALS,GLORY_TROY,power,itemCost,troyDone,canJoker,jokerTargets,joker,aiJoker,mergeAgg,playAI,summarize,simulate,newAgg,addAgg,TRIALS,TR,SYM,GODS,GOD_KEYS,SKILLS,ITEMS,HEROES,EDGES,TURNS,GLORY_TABLE,
+const API={trialThreat,denyValue,TROY_TRIALS,GLORY_TROY,power,itemCost,troyDone,canJoker,jokerTargets,joker,aiJoker,mergeAgg,playAI,summarize,simulate,newAgg,addAgg,TRIALS,TR,SYM,GODS,GOD_KEYS,SKILLS,ITEMS,HEROES,EDGES,TURNS,GLORY_TABLE,
   newGame,P,freeCells,availableEdges,symCounts,missingFor,isComplete,godCount,zeusSets,gloryOf,heroSyms,trialValue,itemValue,score,
   muses,eligibleSkills,placeTrial,takeSkill,zeusPick,buy,pass,ranking,edgeCell,trialEdges,cellEdges,
   aiBestSkill,aiBestTrial,aiBestItem,aiMuses,evalPlayer};
