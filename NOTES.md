@@ -111,7 +111,7 @@ Pas d'étape de construction : les fichiers de la racine sont servis tels quels.
 - Visuels : les 24 faces des Épreuves de Troie ont été retravaillées (palette réduite en aplats, crème/or du jeu, grain) par `src/troy_style.py` ; images `a/t101a…t112b`, masques dorés `a/m101…m112`, Héros `a/ht_<héros>_1|2`.
 - IA de l'extension (réglages demandés par l'auteur) :
   - Ajax : bonus par Compétence avec Gloire posée (≈ 3,8 par partie contre 2 pour les autres Héros).
-  - Diomède : simule chaque renouvellement gratuit (2 tirages), préfère les rangées de Compétences (≈ 6,5 par partie) pour trouver la bonne carte ou priver un adversaire (`denyValue`, Ajax visé par les cartes Gloire) ; les Épreuves plus rarement (≈ 1,3).
+  - Diomède : simule chaque renouvellement gratuit (2 tirages), préfère les rangées de Compétences (≈ 6,5 par partie) pour trouver la bonne carte ou priver un adversaire (`denyValue`, Ajax visé par les cartes Gloire) ; les Épreuves plus rarement (≈ 1,3) ; les Objets s'il a au moins 2 or et qu'un meilleur Objet est probable. Le renouvellement gratuit (1 par tour, n'importe quelle rangée : Épreuves, Compétences ou Objets) s'ajoute aux Muses normales à 1 or.
   - Ménélas : paie 1 or seulement si la carte lui rapporte nettement plus (marge 1,2 PV), avec un bonus de contre-draft et le calcul de l'or du remplissage du présentoir (≈ 2,8 achats par partie).
   - Achille : achète un Objet plus facilement (seuil abaissé), ≈ 3,7 Objets par partie.
   - Ulysse : préfère les Épreuves à 4-5 symboles et compte sur un joker par tour restant pour les Épreuves auxquelles il ne manque qu'un symbole (≈ 3,4 jokers par partie). Joker aussi utilisé par l'IA dans l'app.

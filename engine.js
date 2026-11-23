@@ -374,18 +374,22 @@ function aiMuses(G){
   if(power(p,'luck') && !p.usedFree){
     const base=aiBestTrial(G).v;
     let best=null, bv=0.4;
-    for(const row of ['skill0','skill1','trials']){
+    const itemGain=g=>{ const q=P(g), b0=evalPlayer(g,g.cur); let m=0;
+      g.itemRow.forEach((id,slot)=>{ if(!id||q.gold<itemCost(q,id)) return; const h=clone(g); acquire(h,slot,false); m=Math.max(m,evalPlayer(h,h.cur)-b0); }); return m; };
+    const rows=['skill0','skill1','trials']; if(p.gold>=2 && G.itemPile.length) rows.push('items');
+    for(const row of rows){
       let tot=0; const N=2;
       for(let s=0;s<N;s++){
         const g=clone(G); shuffle(g.skillDeck); shuffle(g.trialDeck);
+        if(row==='items'){ shuffle(g.itemPile); muses(g,row); tot+=itemGain(g); continue; }
         muses(g,row); tot+=aiBestTrial(g).v;
       }
-      let gain=tot/N-base;
-      if(row!=='trials'){
+      let gain=row==='items'? tot/N-itemGain(G)-0.5 : tot/N-base;
+      if(row==='skill0'||row==='skill1'){
         const r=+row[5]; let deny=0;
         G.skillGrid[r].forEach(c=>{ if(c) deny=Math.max(deny,denyValue(G,pi,c)); });
         gain+=0.3*deny+0.5;
-      } else gain-=0.8;
+      } else if(row==='trials') gain-=0.8;
       if(gain>bv){ bv=gain; best=row; }
     }
     return best;
