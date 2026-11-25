@@ -127,7 +127,13 @@ Pas d'étape de construction : les fichiers de la racine sont servis tels quels.
 - Muses : si une Épreuve de la rangée vaut ≥ 6 pour un adversaire et que l'IA a ≥ 2 or, elle renouvelle la rangée d'Épreuves (1 fois par tour) ; Diomède en tient compte dans son renouvellement gratuit.
 - Effet (600 parties, jeu de base) : Δ victoire des Épreuves × Gloire 23,7 → 18,8 pt ; Muses ≈ 0,5 par joueur et par partie (0 avant) ; score moyen inchangé (≈ 85).
 
-## 10. Pistes
+## 10. Tutoriel (25 novembre)
+
+- Bouton « 🎓 Tutoriel » sur l'accueil (`tutorial.js`, textes FR/EN/IT dans `TUT_TXT`). Lance une partie du jeu de base contre 1 IA (Ariane), le joueur commence toujours.
+- 14 étapes affichées en bulle (en bas à droite ; la loupe passe alors à gauche) selon la situation : intro, Héros, phase A/B (choisir puis placer une Épreuve), prise et pose des Compétences, première Épreuve réussie, phase C, tour de l'IA, Gloire, remplissage du présentoir (+1 or), Zeus, conseils, fin. Les éléments concernés sont mis en surbrillance.
+- Les étapes d'action se valident en faisant l'action ; les étapes d'explication avec « Compris ». « Quitter le tutoriel » laisse la partie continuer normalement.
+
+## 11. Pistes
 
 - IA qui utilise mieux les Muses.
 - Agrandissement des cartes au toucher sur mobile.
