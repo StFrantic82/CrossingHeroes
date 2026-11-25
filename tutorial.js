@@ -52,7 +52,7 @@ it:{
  mid:`Ora giochi da solo! Ricorda: <b>varia gli dèi</b> (Zeus), <b>punta ai simboli del tuo Eroe</b> e non lasciare all'avversario una Prova troppo forte per lui. Il pulsante <b>Aiuto</b> riassume le regole.`,
  end:`<b>Fine partita!</b> Il punteggio somma le Prove superate, i simboli del tuo Eroe, la Gloria e gli Oggetti. Gioca ancora, prova la partita online o l'espansione Guerra di Troia.`,
 }};
-const TUT={on:false,seen:new Set(),cur:null,refillSeen:false};
+const TUT={on:false,seen:new Set(),cur:null,refillSeen:false,placed:null};
 const TT=k=>TUT_TXT[L][k];
 const TUT_ORDER=['intro','hero','A0','A1','skill','skillSel','done','C','ai','glory','refill','zeus','mid','end'];
 const TUT_HL={A0:'#market .tcard', A1:'#board .cell.free', skill:'#market .scard.pick', skillSel:'#board .edge.pick', C:'#items', ai:'#log', zeus:'#items', glory:null, refill:'#deckinfo', done:null, intro:'#board', mid:null, end:null};
@@ -113,7 +113,44 @@ function tutAfterRender(){
   else if(sel) document.querySelectorAll(sel).forEach(e=>e.classList.add('tut-hl'));
   if(w==='done') document.querySelectorAll('#board .cell .ok').forEach(e=>e.parentElement.classList.add('tut-hl'));
   if(w==='ai') document.querySelectorAll('.ptab')[1]?.classList.add('tut-hl');
+  const fresh=TUT.placed!==w; TUT.placed=w;
+  if(fresh){ const first=document.querySelector('.tut-hl'); if(first) tutScrollTo(first); }
+  tutPlace();
 }
+// Place la bulle dans le coin qui ne recouvre pas les zones expliquées
+function tutRects(){ return [...document.querySelectorAll('.tut-hl')].map(e=>e.getBoundingClientRect()).filter(r=>r.width&&r.height); }
+function tutOverlap(a,b){ const x=Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left)), y=Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)); return x*y; }
+function tutPlace(){
+  const box=document.getElementById('tutbox'); if(!box||box.style.display==='none') return;
+  const W=innerWidth, H=innerHeight, m=W<760?8:16, bw=box.offsetWidth, bh=box.offsetHeight;
+  const rects=tutRects();
+  const spots=[['bottom','right'],['bottom','left'],['top','right'],['top','left']].map(([v,h])=>{
+    const left=h==='left'?m:W-bw-m, top=v==='top'?m:H-bh-m;
+    const r={left,top,right:left+bw,bottom:top+bh};
+    const cost=rects.reduce((s,x)=>s+tutOverlap(r,x),0);
+    return {v,h,cost,left,top};
+  });
+  spots.sort((a,b)=>a.cost-b.cost);
+  let s=spots[0];
+  // si tout recouvre (petit écran), on cherche la meilleure hauteur libre
+  if(s.cost>0){
+    let best=null;
+    for(let top=m; top<=H-bh-m; top+=12){
+      const r={left:W<760?m:s.left,top,right:(W<760?m:s.left)+bw,bottom:top+bh};
+      const c=rects.reduce((a,x)=>a+tutOverlap(r,x),0);
+      if(!best||c<best.c){ best={c,top,left:r.left}; if(!c) break; }
+    }
+    if(best&&best.c<s.cost) s={left:best.left,top:best.top,cost:best.c};
+  }
+  box.style.left=s.left+'px'; box.style.top=s.top+'px'; box.style.right='auto'; box.style.bottom='auto';
+  box.dataset.overlap=Math.round(s.cost);
+}
+function tutScrollTo(el){
+  const r=el.getBoundingClientRect();
+  if(r.top<0||r.bottom>innerHeight) el.scrollIntoView({block:'center',behavior:'smooth'});
+}
+addEventListener('resize',()=>{ if(TUT.on) tutPlace(); });
+addEventListener('scroll',()=>{ if(TUT.on) tutPlace(); },{passive:true});
 // Pendant l'intro, l'IA attend que le joueur ait lu
 const _sched=scheduleAI;
 scheduleAI=async function(){ if(TUT.on&&!TUT.seen.has('hero')) return; return _sched(); };

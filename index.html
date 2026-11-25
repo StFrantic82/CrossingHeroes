@@ -372,7 +372,7 @@ table.sc tr.tot{background:#16110e14}
 .cell .jk{position:absolute;left:4px;top:4px;background:var(--ink);color:var(--gold);border:1.5px solid var(--gold);border-radius:50%;min-width:22px;height:22px;padding:0 4px;display:grid;place-items:center;font-weight:800;font-size:12.5px}
 
 /* tutoriel */
-#tutbox{position:fixed;right:16px;bottom:16px;z-index:45;width:min(380px,calc(100vw - 32px));background:var(--grain),linear-gradient(180deg,var(--terraL),var(--terra) 45%,var(--terra2));background-size:160px 160px,100% 100%;color:var(--ink);border:2px solid var(--ink);border-radius:4px;box-shadow:0 0 0 1px #000,0 16px 40px #000c;overflow:hidden;animation:tutIn .3s ease}
+#tutbox{position:fixed;right:16px;bottom:16px;transition:left .25s,top .25s;z-index:45;width:min(380px,calc(100vw - 32px));background:var(--grain),linear-gradient(180deg,var(--terraL),var(--terra) 45%,var(--terra2));background-size:160px 160px,100% 100%;color:var(--ink);border:2px solid var(--ink);border-radius:4px;box-shadow:0 0 0 1px #000,0 16px 40px #000c;overflow:hidden;animation:tutIn .3s ease}
 #tutbox::before{content:"";display:block;height:12px;background:var(--meanderInk) repeat-x center/12px 12px;border-bottom:2px solid var(--ink)}
 #tutbox .tut-h{display:flex;justify-content:space-between;align-items:center;padding:8px 12px 0;font-family:'Cinzel',serif;font-weight:800;font-size:13px;letter-spacing:.06em}
 #tutbox .tut-x{background:none;border:0;font-size:22px;line-height:1;color:var(--ink);font-weight:800}
@@ -384,7 +384,7 @@ table.sc tr.tot{background:#16110e14}
 @keyframes tutIn{from{transform:translateY(16px);opacity:0}}
 #homeHelp,#tutBtn{flex:0 0 auto!important;min-width:0!important}
 .setup #tutBtn{border-color:var(--ink);color:var(--ink)}
-@media (max-width:760px){ #tutbox{left:8px;right:8px;bottom:8px;width:auto} #tutbox .tut-b{font-size:14px} }
+@media (max-width:760px){ #tutbox{width:calc(100vw - 16px)} #tutbox .tut-b{font-size:14px} }
 </style>
 </head>
 <body>
@@ -494,6 +494,6 @@ table.sc tr.tot{background:#16110e14}
 <script src="i18n.js?v=12"></script>
 <script src="app.js?v=12"></script>
 <script src="mp.js?v=12"></script>
-<script src="tutorial.js?v=12"></script>
+<script src="tutorial.js?v=13"></script>
 </body>
 </html>

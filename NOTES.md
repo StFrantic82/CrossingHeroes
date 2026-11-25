@@ -130,7 +130,7 @@ Pas d'étape de construction : les fichiers de la racine sont servis tels quels.
 ## 10. Tutoriel (25 novembre)
 
 - Bouton « 🎓 Tutoriel » sur l'accueil (`tutorial.js`, textes FR/EN/IT dans `TUT_TXT`). Lance une partie du jeu de base contre 1 IA (Ariane), le joueur commence toujours.
-- 14 étapes affichées en bulle (en bas à droite ; la loupe passe alors à gauche) selon la situation : intro, Héros, phase A/B (choisir puis placer une Épreuve), prise et pose des Compétences, première Épreuve réussie, phase C, tour de l'IA, Gloire, remplissage du présentoir (+1 or), Zeus, conseils, fin. Les éléments concernés sont mis en surbrillance.
+- 14 étapes affichées en bulle, placée automatiquement dans le coin qui ne recouvre pas les zones expliquées (sinon à la meilleure hauteur libre, recalculée au défilement et au redimensionnement ; la loupe passe alors à gauche) ; la page défile vers la zone expliquée si elle est hors de l'écran selon la situation : intro, Héros, phase A/B (choisir puis placer une Épreuve), prise et pose des Compétences, première Épreuve réussie, phase C, tour de l'IA, Gloire, remplissage du présentoir (+1 or), Zeus, conseils, fin. Les éléments concernés sont mis en surbrillance.
 - Les étapes d'action se valident en faisant l'action ; les étapes d'explication avec « Compris ». « Quitter le tutoriel » laisse la partie continuer normalement.
 
 ## 11. Pistes
