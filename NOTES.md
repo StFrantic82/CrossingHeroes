@@ -2,7 +2,9 @@
 
 Document de reprise du projet pour une nouvelle discussion avec Claude. Il résume l'état de l'app, les règles telles qu'elles sont codées, les choix de design et la marche à suivre pour la mettre à jour.
 
-État au 21 novembre 2026.
+État au 28 novembre 2026 (fin de la première discussion).
+
+**Pour reprendre dans une nouvelle discussion :** donner à Claude le lien du dépôt `https://github.com/StFrantic82/CrossingHeroes` et lui demander de lire `NOTES.md` en entier avant toute modification. La section 12 résume l'état et ce qui reste ouvert.
 
 ---
 
@@ -15,7 +17,7 @@ Document de reprise du projet pour une nouvelle discussion avec Claude. Il résu
 
 **Publier une mise à jour, à chaque modification :**
 1. Cloner le dépôt et modifier les fichiers de la racine (`index.html`, `app.js`, `engine.js`, `i18n.js`, `sim-worker.js`) ou les images de `a/`.
-2. Tester : `node src/sim.js 200 3` (simulation sans navigateur), puis une partie dans le navigateur.
+2. Tester : `node src/sim.js 200 3` (simulation sans navigateur), puis les tests navigateur du dossier `tests/` (section 12).
 3. Publier sur l'artefact Claude (`publish_files` avec le slug, la dernière version et les fichiers modifiés, en mode `patch`).
    - Si l'artefact est partagé en public, Claude ne peut pas le modifier : repasser le partage sur « Only you », publier, puis remettre le partage.
    - Avant de publier, augmenter le numéro de version `?v=` des scripts dans `index.html` (et dans `app.js` / `sim-worker.js`), sinon les navigateurs gardent l'ancienne version en cache jusqu'à 10 minutes.
@@ -135,5 +137,26 @@ Pas d'étape de construction : les fichiers de la racine sont servis tels quels.
 
 ## 11. Pistes
 
-- IA qui utilise mieux les Muses.
-- Agrandissement des cartes au toucher sur mobile.
+- Agrandissement des cartes au toucher sur mobile (la loupe ne marche qu'au survol).
+- Étapes du tutoriel pour l'extension Guerre de Troie (retournement, pouvoirs).
+- Image d'aperçu (vignette) de l'artefact Claude : à choisir depuis le menu Partager, ou à fabriquer (`<link rel="artifact-thumbnail">`).
+
+## 12. État à la fin de la première discussion (28 novembre) et décisions en attente
+
+**Fait et en ligne (GitHub Pages et artefact Claude, version des scripts `?v=12`, tutoriel `?v=13`) :**
+jeu de base complet (2–5 joueurs, solo sur un écran avec IA, 1 adversaire par défaut), partie en ligne pair-à-pair, FR/EN/IT, style poterie grecque, couverture animée, reflet doré, onglet Statistiques (simulations cumulables, Δ victoire, surbrillance et loupe à gauche), historique des parties, extension Guerre de Troie (Épreuves retravaillées, Héros recto verso, pouvoirs, IA spécifique), IA de contre-draft, tutoriel en 14 étapes avec bulle auto-placée.
+
+**Questions ouvertes (aucune règle changée sans l'accord de l'auteur) :**
+- Équilibrage de l'extension (IA, 3 joueurs) : Ajax ≈ 55–60 % de victoires, Ulysse et Ménélas ≈ 16–22 %. L'auteur ne veut pas affaiblir Ajax ; il a seulement fait régler l'IA. Simulation « pouvoirs d'Ulysse et Ménélas gratuits » (800 parties, copie à part, non appliquée) : Ajax 38 %, Ménélas 46 %, Ulysse 37 %, Achille 24 %, Diomède 22 %. Piste proposée, non testée : Ménélas avec 1 choix gratuit par tour puis 1 or.
+- Les Épreuves « × Gloire » restent les plus liées à la victoire (≈ +19 pt) malgré le contre-draft de l'IA ; c'est une force réelle de ces cartes, pas un défaut de l'IA.
+- Visuels Troie retravaillés automatiquement (`src/troy_style.py`) : l'auteur n'a pas encore donné son avis sur le résultat.
+
+**Tests (dossier `tests/`)** — lancer un serveur local dans le dossier du dépôt : `python3 -m http.server 8766`, puis :
+- `python3 tests/solo_ui.py` : partie solo complète + simulation dans l'onglet Statistiques (Playwright).
+- `python3 tests/online_ui.py` et `tests/online_troy_ui.py` : partie en ligne hôte + invité + IA dans deux onglets (mode `?mptest=1`), avec ou sans l'extension.
+- `python3 tests/troy_ui.py` : une partie avec chacun des 5 Héros de Troie.
+- `python3 tests/tutorial_ui.py` : tutoriel complet sur 4 tailles d'écran, vérifie que la bulle ne recouvre aucune zone expliquée.
+- `python3 tests/stats_cumul.py` : cumul et réinitialisation des simulations.
+- `node tests/troy_heroes.js` : comportement et taux de victoire des Héros de Troie (400 parties).
+- `node tests/glory_trials.js [engine.js] [parties] [0|1]` : Δ victoire par type de score d'Épreuve.
+- Les scripts Python enregistrent leurs captures dans `/home/claude/` : adapter le chemin si besoin.
